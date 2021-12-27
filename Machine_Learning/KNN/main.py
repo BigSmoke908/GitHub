@@ -28,6 +28,7 @@ for i in range(len(alles)):
     else:
         z.append(alles[i])
 
+
 while len(alles) != 0:
     alles.remove(alles[0])
 
