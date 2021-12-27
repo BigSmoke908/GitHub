@@ -1,0 +1,15 @@
+es gibt 3 Parameter für Dinge die erkannt werden sollen
+
+Dinge die richtig sind haben:
+10 < a < 50
+25 < b < 30
+2 < c < 10
+
+dafür sind Daten in folgender Form bekannt (# in den Daten ist hier ein "_")
+a_b_c_z
+
+- z = 0, wenn der Punkt nicht erkannt als war erkannt werden soll
+- z = 1, wenn der Punkt als Teil der Klasse erkannt werden soll
+
+bekannt.txt -> Trainingsdaten
+unbekannt.txt -> Daten um das ganze danach auszuprobieren
