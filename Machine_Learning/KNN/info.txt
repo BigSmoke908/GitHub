@@ -8,8 +8,8 @@ Dinge die richtig sind haben:
 dafür sind Daten in folgender Form bekannt (# in den Daten ist hier ein "_")
 a_b_c_z
 
-- z = 0, wenn der Punkt nicht erkannt als war erkannt werden soll
-- z = 1, wenn der Punkt als Teil der Klasse erkannt werden soll
+z = 0, wenn der Punkt nicht erkannt als Teil der Klasse erkannt werden soll
+z = 1, wenn der Punkt als Teil der Klasse erkannt werden soll
 
 bekannt.txt -> Trainingsdaten
 unbekannt.txt -> Daten um das ganze danach auszuprobieren
