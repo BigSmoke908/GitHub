@@ -2,9 +2,9 @@ import random
 
 a = 10, 15
 # Bereich für Parameter a, in dem er richtig ist (beide Zahlen sind immer ausgeschlossen)
-b = 75, 80
+b = 7, 12
 # Bereich für Parameter b
-c = 95, 100
+c = 9, 10
 # Bereich für Parameter c
 x = 10
 # wie viele wahre Datenpunkte gegeben sein sollen
