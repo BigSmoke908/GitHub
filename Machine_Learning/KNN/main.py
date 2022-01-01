@@ -67,7 +67,7 @@ def knn_gewichtet(x):
     # (erst steht der Abstand, dann ob Teil der Kategorie oder nicht
 
     for i in range(len(a)):
-        buffer = (d(a[i], ta[x])) + d(b[i], tb[x]) + d(c[i], tc[x])
+        buffer = d(a[i], ta[x]) + d(b[i], tb[x]) + d(c[i], tc[x])
         distanz[i] = [buffer, z[i]]
 
     for i in range(len(distanz)):

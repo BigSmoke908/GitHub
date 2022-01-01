@@ -1,14 +1,14 @@
 import random
 
-a = 70, 75
+a = 10, 15
 # Bereich für Parameter a, in dem er richtig ist (beide Zahlen sind immer ausgeschlossen)
-b = 25, 30
+b = 75, 80
 # Bereich für Parameter b
-c = 50, 60
+c = 95, 100
 # Bereich für Parameter c
-x = 100
+x = 10
 # wie viele wahre Datenpunkte gegeben sein sollen
-y = 100
+y = 0
 # wie viele falsche Datenpunkte gegeben sein sollen
 
 wahr = 1
