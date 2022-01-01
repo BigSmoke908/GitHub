@@ -1,4 +1,5 @@
 from math import sqrt as wurzel
+from func_fuer_ml import distanz as d
 
 
 def knn_gewichtet(x):
@@ -66,9 +67,7 @@ def knn_gewichtet(x):
     # (erst steht der Abstand, dann ob Teil der Kategorie oder nicht
 
     for i in range(len(a)):
-        buffer = ((a[i] - ta[x]) ** 2) + ((b[i] - tb[x]) ** 2) + ((c[i] - tc[x]) ** 2)
-        if buffer != 0:
-            buffer = wurzel(buffer)
+        buffer = (d(a[i], ta[x])) + d(b[i], tb[x]) + d(c[i], tc[x])
         distanz[i] = [buffer, z[i]]
 
     for i in range(len(distanz)):

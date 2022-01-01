@@ -1,14 +1,14 @@
 import random
 
-a = 10, 50
+a = 70, 75
 # Bereich für Parameter a, in dem er richtig ist (beide Zahlen sind immer ausgeschlossen)
 b = 25, 30
 # Bereich für Parameter b
-c = 2, 10
+c = 50, 60
 # Bereich für Parameter c
-x = 20
+x = 100
 # wie viele wahre Datenpunkte gegeben sein sollen
-y = 20
+y = 100
 # wie viele falsche Datenpunkte gegeben sein sollen
 
 wahr = 1
@@ -23,7 +23,6 @@ with open('bekannt.txt', 'w') as f:
         bn = random.randrange(b[0] + 1, b[1] + 1, 1)
         cn = random.randrange(c[0] + 1, c[1] + 1, 1)
         buffer = str(an) +  " " + str(bn) + " " + str(cn) + " 1"
-        print(buffer + '\n')
         f.write(buffer + '\n')
 
     not_Found = True
