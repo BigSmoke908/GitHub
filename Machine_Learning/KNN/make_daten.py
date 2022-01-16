@@ -1,10 +1,10 @@
 import random
 
-a = 10, 15
+a = 60, 61
 # Bereich für Parameter a, in dem er richtig ist (beide Zahlen sind immer ausgeschlossen)
-b = 7, 12
+b = 10, 11
 # Bereich für Parameter b
-c = 9, 10
+c = 1, 2
 # Bereich für Parameter c
 x = 10
 # wie viele wahre Datenpunkte gegeben sein sollen

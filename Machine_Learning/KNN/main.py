@@ -61,7 +61,7 @@ def knn_gewichtet(x):
     # jetzt sind die Punkte die geprüft werden sollen fertig sortiert in ta, tb, tc, tz
 
     distanz = {}
-    # speichert den Abstand zwischen einem gegebenen Punkt (der der geprüft)
+    # speichert den Abstand zwischen einem gegebenen Punkt (der der geprüft wird)
     # und allen Punkten aus den Trainingsdaten (Postion = Nummer von Punkt)
     # die Keys werden nach den Nummern der Punkte in den Trainingsdaten einfach durchnummeriert
     # (erst steht der Abstand, dann ob Teil der Kategorie oder nicht
