@@ -1,0 +1,4 @@
+Dinge die noch geklärt werden müssen:
+- Kühlung (am besten passiv
+- Internetanbindung (am besten einfach ein Internetkabel anstecken)
+- Auflösung runterdrehen (Leistung sparen)
