@@ -1,0 +1,20 @@
+in Files gibt es zwei Textdateien
+
+in Links sind die einzelnen Strings für die Giveaways drin
+in Tasks sind die Nummer der täglichen Aufgaben zum Giveaway drin (durch "_" voneinander getrennt, bei " " fängt das nächste Giveaway an)
+
+Bedienablauf:
+1. Script öffnet Website
+2. User meldet sich an
+3. User/Script geht zum jeweiligen Giveaway
+4. alle Aufgaben werden gelöst
+5. das Script trägt ein, welche Giveaways abgeschlossen/gefailt sind
+6. zurück zu 3 bis alle Giveaways für den Tag fertig sind
+
+
+Wenn bei neuem Giveaway eintragen:
+- immer in Links den String reintun + in Tasks alle täglichen Aufgaben reintuen
+
+Wenn ein Giveaway abgelaufen ist:
+- den String raussuchen + entfernen
+- die zugehörigen Aufgaben raussuchen und entfernen

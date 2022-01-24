@@ -5,15 +5,18 @@ keyboard = Controller()
 Link = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley'
 time.sleep(2)
 
+
 def typIn(text):
     for char in text:
         keyboard.press(char)
         keyboard.release(char)
         time.sleep(0.02)
 
+
 def pressOnce(letter):
     keyboard.press(letter)
     keyboard.release(letter)
+
 
 def Rickroll():
     keyboard.press(Key.cmd)
