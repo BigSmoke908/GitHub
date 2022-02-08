@@ -1,12 +1,13 @@
 import datetime as dt
-from pandas_datareader import data as pdr
-import sys
+import pandas_datareader.data as pdr
 
+
+import sys
 end = dt.datetime.now()
 start = end - dt.timedelta(days=3)
 
-stocklist = ['GC=F']
-stock = 0
+stocklist = ['GC=F', 'AMC']
+stock = 1
 
 try:
     df = pdr.get_data_yahoo(stocklist[stock], start, end)
@@ -14,21 +15,17 @@ except:
     print('es konnten keine Daten erhoben werden, bei der Aktie mit dem Kürzel "' + stocklist[stock] + '"')
     sys.exit()
 
-
-print(df)
-print('----')
-print('----')
-
 x = df.to_numpy()
-print(x[0][0])
 
-print('---')
-print(len(x[0]))
-print(len(x))
-
-
-print('---')
-
-print(type(x[0][0]))
-x = int(x[0][0])
 print(x)
+
+
+def get_value(stock, start, end):
+    try:
+        df = pdr.get_data_yahoo(stock, start, end)
+
+    except:
+        print('es konnten keine Daten erhoben werden bei der Aktie mit dem Kürzel "' + stock + '"')
+        return []
+
+    return df.to_numpy()
