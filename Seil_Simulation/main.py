@@ -4,12 +4,12 @@ import math
 
 pygame.init()
 
-FK = (3840, 216)
+FK = (3840, 2160)
 FHD = (1920, 1080)
 UHD = (2560, 1440)
 HD = (1080, 729)
 
-screen = pygame.display.set_mode(FHD)
+screen = pygame.display.set_mode(UHD)
 
 # bildet den tan hoch -1 von einem x und gibt diesen als float zurück
 def intan(x):
@@ -25,8 +25,8 @@ Hintergrundcol = (50, 100, 170)
 # pygame.draw.circle(screen, Punktcol, (2560, 1440), 20)
 # zeigt einen Punkt an
 Stick = pygame.image.load('stick.png')
-Stick = pygame.transform.scale(Stick, (4, 1000))
-Stick = pygame.transform.rotate(Stick, 90)
+#Stick = pygame.transform.scale(Stick, (4, 1000))
+#Stick = pygame.transform.rotate(Stick, 90)
 # verzerrt den Stick in jede gewünschte Form
 
 x, y = 0, 0
@@ -34,43 +34,39 @@ x, y = 0, 0
 
 # speichert alle Punkte mit X und Y Koordinaten
 # der dritte Wert ist 0 bie normalen Punkten und 1 wenn der Punkt gefixt ist
-points = [[500, 500, 0], [200, 400, 0], [100, 300, 1]]
+points = [[500, 500, 0], [700, 700, 0], [100, 600, 1]]
 # speichert alle Sticks, mit den beiden Punkten mit denen sie verbunden sind
-sticks = [[0, 1]]
+sticks = [[0, 1], [0, 2]]
 
 
 def render():
-    screen.fill(Hintergrundcol)
     global Stick
+    screen.fill(Hintergrundcol)
 
-    for i in range(len(points)):
+    for i in range(len(sticks)):  # jeder Stick soll gerendert werden
+        try:
+            a = points[sticks[i][0]][0] - points[sticks[i][1]][0]  # Abstand auf der X Koordinate
+            b = points[sticks[i][0]][1] - points[sticks[i][1]][1]  # Abstand auf der Y Koordinate
+            alpha = int(intan(a / b))
+            c = abs(int(math.sqrt(a ** 2 + b ** 2)))  # Länge der Hypotenuse
+            StickIMG = pygame.transform.scale(Stick, (4, c))  # zieht den Stick auf die richtige Länge
+            StickIMG = pygame.transform.rotate(StickIMG, alpha)  # rotiert den Stick richtig hin
+
+            screen.blit(StickIMG, (points[sticks[i][0]][0], points[sticks[i][0]][1]))
+            #if points[sticks[i][0]][0] < points[sticks[i][2]][0]:
+
+            del StickIMG
+        except:
+            pass
+
+    for i in range(len(points)):  # rendert die Punkte
         a, b = points[i][0], points[i][1]
         if points[i][2] == 0:  # normalen Punkt anzeigen
             pygame.draw.circle(screen, Punktcol, (a, b), 10)
         elif points[i][2] == 1:  # gefixten Punkt anzeigen
             pygame.draw.circle(screen, Punktfcol, (a, b), 10)
 
-    for i in range(len(sticks)):  # jeder Stick soll gerendert werden
-        #try:
-            print('a')
-            a = points[sticks[i][0]][0] - points[sticks[i][1]][0]  # Abstand auf der X Koordinate
-            b = points[sticks[i][0]][1] - points[sticks[i][1]][1]  # Abstand auf der Y Koordinate
-            print(a, b)
-            alpha = intan(a / b)
-            print(alpha)
-            Stick = pygame.transform.rotate(Stick, alpha)  # rotiert den Stick richtig hin
-
-            c = abs(int(math.sqrt(a**2 + b**2)))  # Länge der Hypotenuse
-            Stick = pygame.transform.scale(Stick, (4, c))  # zieht den Stick auf die richtige Länge
-            print(points[sticks[i][0]][0], points[sticks[i][0]][1])
-            print(screen)
-            screen.blit(screen, Stick, (points[sticks[i][0]], points[sticks[i][0]][1]))
-            print('1')
-        #except:
-            print('2')
-         #   pass
-
-
+    pygame.display.update()
 
 
 while True:
@@ -87,6 +83,6 @@ while True:
             elif state[2]:  # rechter Mousebutton -> gefixter Punkt soll hinzugefügt werden
                 points.append([x, y, 1])
 
-    render()
+    screen.blit(Stick, (500, 500))
 
-    pygame.display.update()
+    render()
