@@ -31,3 +31,7 @@ while True:
 
     pygame.display.update()
 '''
+
+zeug = [(18.35895898094998, 99.81)]
+
+print(zeug[0][0])

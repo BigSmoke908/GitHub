@@ -1,5 +1,7 @@
 import random
 import sys
+import time
+
 import pygame
 import math
 
@@ -10,7 +12,7 @@ FHD = (1920, 1080)
 UHD = (2560, 1440)
 HD = (1080, 720)
 
-screen = pygame.display.set_mode(HD)
+screen = pygame.display.set_mode(UHD)
 
 
 # Farben
@@ -70,6 +72,13 @@ def render(modus):
     pygame.display.update()
 
 
+def wipe():
+    global points, sticks, speed
+
+    points, sticks, speed = [], [], []
+
+
+
 # bildet den tan hoch -1 von einem x und gibt diesen als float zurück
 def intan(x):
     return math.degrees(math.atan(x))
@@ -127,11 +136,11 @@ def get_force(force1, force2):
         if v == 0:
             alpha = 0
         elif v1 == 0:
-            alpha = v2[1]
+            alpha = v2
 
         # TODO: weitere Sonderfälle?
 
-    return v, alpha
+    return [v, alpha]
 
 
 #  berechnet Kraft von einem Stick der gestreckt/zusammengedrückt wird
@@ -163,32 +172,34 @@ def get_stickforce(stick, D, point_of_attack):  # kann erstmal eingebaut werden,
         else:
             alpha = 180
 
-    return F, alpha
+    return [F, alpha]
 
 
 def move_points():
     global speed, points
     D = [1, 0]  # Stärke der Federn der Sticks, die Null muss für die Richtung jedes Sticks angepasst werden
-    g = [9.81, 0]
+    g = [9.81, 180]
 
-    bereits_erledigt = []  # die Punkte die bereits neu berechnet wurden
-    for i in range(len(points)):
-        if points[i][2] == 0:  # wenn der Punkt nicht gelockt ist
-            beteiligte_sticks = []  # speichert alle Sticks an denen der Punkt irgendwie befestigt ist
-            for j in range(len(sticks)):
-                if points[i] in sticks[j]:
-                    beteiligte_sticks.append(j)
+    try:
+        for i in range(len(points)):
+            if points[i][2] == 0:  # wenn der Punkt nicht gelockt ist
+                beteiligte_sticks = []  # speichert alle Sticks an denen der Punkt irgendwie befestigt ist
+                for j in range(len(sticks)):
+                    if points[i] in sticks[j]:
+                        beteiligte_sticks.append(j)
 
-            force = [0, 0]
-            for j in range(len(beteiligte_sticks)):  # berechnet die Kraft von momentaner Kraft und jedem Stick
-                force = get_force(force, get_stickforce(beteiligte_sticks[j], 1, i))
+                force = [0, 0]
+                for j in range(len(beteiligte_sticks)):  # berechnet die Kraft von momentaner Kraft und jedem Stick
+                    force = get_force(force, get_stickforce(beteiligte_sticks[j], 1, i))
 
-            force = get_force(force, g)  # berechnet Kraft mit der Gravitation
-            force = get_force(force, speed[i])  # berechnet Kraft mit letzter Geschwindigkeit
+                force = get_force(force, g)  # berechnet Kraft mit der Gravitation
+                print('---')
+                print(i, len(speed), speed)
+                force = get_force(force, speed[i])  # berechnet Kraft mit letzter Geschwindigkeit
 
-            speed[i] = force  # Geschwindigkeit wird so hingesetzt
-
-            bereits_erledigt.append(i)  # der Punkt kann als fertig gespeichert werden
+                speed[i] = force  # Geschwindigkeit wird so hingesetzt
+    except:
+        pass
 
 
     # Daten bereinigen -> falls Kräfte eine Richtung von Beispielsweise 420° haben -> 60°
@@ -203,8 +214,13 @@ def move_points():
     41
     (alter Punkt ist in der Mitte)
     '''
+    for i in range(len(speed)):
+        speed[i][0] /= 10
+
 
     for i in range(len(speed)):  # Loop für alle Punkte mit ihren Geschwindigkeiten
+        print('####')
+        print(len(points), len(speed))
         if speed[i][1] == 0:  # Sonderfall senkrecht nach unten
             points[i][0] += speed[i][0]
         elif (speed[i][1] - 90) == 0:  # Sonderfall waagerecht nach rechts
@@ -259,11 +275,17 @@ while True:
                     else:
                         if [selected, Punkt] in sticks or [Punkt, selected] in sticks:  # wenn an dieser Stelle eine Verbindung ist -> entferne diese
                             try:
-                                Stick_Länge.remove(Stick_Länge[sticks.index([selected, Punkt])])
-                                sticks.remove([selected, Punkt])
+                                i = sticks.index([selected, Punkt])
+
+                                Stick_Länge.remove(Stick_Länge[i])
+                                sticks.remove(sticks[i])
+                                speed.remove(speed[i])
                             except:
-                                Stick_Länge.remove(Stick_Länge[sticks.index([Punkt, selected])])
-                                sticks.remove([Punkt, selected])
+                                i = sticks.index([Punkt, selected])
+
+                                Stick_Länge.remove(Stick_Länge[i])
+                                sticks.remove(sticks[i])
+                                speed.remove(speed[i])
                         else:
                             sticks.append([selected, Punkt])
                             Stick_Länge.append(get_sticklänge(len(sticks) - 1))
@@ -273,8 +295,12 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 Mode = not Mode
+            elif event.key == pygame.K_c:
+                wipe()
 
     if Mode:
         move_points()
+        #time.sleep(1)
+
 
     render(Mode)
