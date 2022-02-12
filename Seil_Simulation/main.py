@@ -103,7 +103,7 @@ def detect_point(a, b):
 
 
 # ist um die Standardlänge von einem neuen Stick zu ermitteln
-def get_sticklänge(stick):
+def get_sticklänge(stick):  # TODO: Funktion testen/debuggen
     A = [points[sticks[stick][0]][0], points[sticks[stick][0]][1]]  # Koordinaten von Punkt 1
     B = [points[sticks[stick][1]][0], points[sticks[stick][1]][1]]  # Koordinaten von Punkt 2
 
@@ -113,7 +113,8 @@ def get_sticklänge(stick):
     return math.sqrt(a**2 + b**2)
 
 
-def get_force(force1, force2):
+# bildet das Kräfteparallelogramm von zwei Kräften und gibt Betrag und Richtung der resultierenden Kraft als List zurück
+def get_force(force1, force2):  # TODO: Funktion testen/debuggen
     # Format der Kraft [Betrag, Richtung in Grad die die Kraft von g (senkrecht nach unten) abweicht -> ist gegen den Uhrzeigersinn]
 
     if force1[1] > force2[1]:  # damit v1 kleineren Winkel als v2 hat
@@ -145,7 +146,7 @@ def get_force(force1, force2):
 
 #  berechnet Kraft von einem Stick der gestreckt/zusammengedrückt wird
 #  es muss der Stick angegeben werden auf den die Kraft wirkt
-def get_stickforce(stick, D, point_of_attack):  # kann erstmal eingebaut werden, müsste soweit auch funktionieren
+def get_stickforce(stick, D, point_of_attack):  # TODO: Funktion testen/debuggen
     F = abs(get_sticklänge(stick) - Stick_Länge[stick]) * D  # berechnet den Betrag der Kraft
 
     A = [points[sticks[stick][0]][0], points[sticks[stick][0]][1]]  # Koordinaten von Punkt 1
@@ -175,7 +176,7 @@ def get_stickforce(stick, D, point_of_attack):  # kann erstmal eingebaut werden,
     return [F, alpha]
 
 
-def move_points():
+def move_points():  # TODO: Funktion testen/debuggen
     global speed, points
     D = [1, 0]  # Stärke der Federn der Sticks, die Null muss für die Richtung jedes Sticks angepasst werden
     g = [9.81, 180]
@@ -204,7 +205,7 @@ def move_points():
 
     # Daten bereinigen -> falls Kräfte eine Richtung von Beispielsweise 420° haben -> 60°
     '''for i in range(len(speed)):
-        speed[i][1] = speed[i][1] % 360'''  # TODO: die Datenbereinigung ist irgendwie kinda dump und muss gefixt werden
+        speed[i][1] = speed[i][1] % 360'''  # TODO: die Datenbereinigung ist irgendwie kinda dumb und muss gefixt werden
 
     # TODO: nachdem jeder Stick eine Geschwindigkeit bekommen hat muss jeder auch noch bewegt werden
     # als erstes muss herausgefunden werden in welchem Quadrant relativ zur jetztigen Position sich die neue Position befindet
@@ -247,7 +248,7 @@ def move_points():
                 speed[i][0] = speed[i][1] - 270  # den Winkel an den Quadranten anpassen
 
                 points[i][0] -= speed[i][0] / math.sin(90 - speed[i][1])  # X Koordinate
-                points[i][1] += speed[i][0] / math.sin(speed[i][1])  # Y Koordinate
+                points[i][1] += speed[i][0] / math.sin(speed[i][1])       # Y Koordinate
 
     return
 
@@ -301,6 +302,10 @@ while True:
     if Mode:
         move_points()
         #time.sleep(1)
+
+
+    if len(speed) < len(points):
+        speed.append([0, 0])
 
 
     render(Mode)
