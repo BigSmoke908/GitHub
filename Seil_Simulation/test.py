@@ -1,4 +1,4 @@
-import sys
+'''import sys
 import pygame
 import time
 
@@ -30,3 +30,4 @@ while True:
                 i = 1
 
     pygame.display.update()
+'''
