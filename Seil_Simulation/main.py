@@ -66,7 +66,6 @@ def render(modus):
 
     if modus:
         pygame.draw.circle(screen, GREEN, (20, 20), 20)
-        print(points)
     else:
         pygame.draw.circle(screen, RED, (20, 20), 20)
 
@@ -95,7 +94,7 @@ def insinus(x):  # wurde getestet
 
 
 def cos(x):
-    return math.acos(math.radians(x))
+    return math.cos(math.radians(x))
 
 
 def sin(x):
@@ -145,25 +144,24 @@ def get_force(force1, force2):  # Teststatus: Funktion wurde komplett getestet u
 
     v = math.sqrt(v1 ** 2 + v2 ** 2 + (2 * v1 * v2 * cos(alpha)))  # b
 
-    alpha = 180 - alpha  # alpha ist jetzt der andere Winkel im Kräfteparallelogramm -> wichtig für weitere Rechnungen
+    if alpha < 180:  # das Parallelogramm ist auf die normale Seite geklappt
+        alpha = 180 - alpha  # alpha ist jetzt der andere Winkel im Kräfteparallelogramm -> wichtig für weitere Rechnungen
+        alpha = insinus((v2/v) * sin(alpha))
+    else:  # das Parallelogramm klappt sich auf die andere Seite
+        alpha = incos((-(v2 ** 2) + v ** 2 + v1 ** 2) / (2 * v1 * v))
 
-    alpha = insinus((v2/v) * sin(alpha))
+        alpha = 360 - alpha
 
     alpha += force1[1]
-
-    alpha = int(alpha * 1000000) / 1000000
-
+    alpha = alpha // 1
     alpha = alpha % 360
-    print('#######')
-    print([v, alpha])
-    print('#######')
     return [v, alpha]
 
 
 #  berechnet Kraft von einem Stick der gestreckt/zusammengedrückt wird
 #  es muss der Stick angegeben werden auf den die Kraft wirkt
 def get_stickforce(stick, D, point_of_attack):  # Teststatus: Funkion wurde komplett getestet und funktioniert
-    F = abs(get_sticklänge(stick) - Stick_Länge[stick]) * D  # berechnet den Betrag der Kraft
+    F = abs(get_sticklänge(stick) - Stick_Länge[stick]) * 200   # berechnet den Betrag der Kraft
 
     A = [points[sticks[stick][0]][0], points[sticks[stick][0]][1]]  # Koordinaten von Punkt 1
     B = [points[sticks[stick][1]][0], points[sticks[stick][1]][1]]  # Koordinaten von Punkt 2
@@ -193,7 +191,7 @@ def move_points():  # TODO: Funktion testen/debuggen
         if points[i][2] == 0:  # wenn der Punkt nicht gelockt ist
             beteiligte_sticks = []  # speichert alle Sticks an denen der Punkt irgendwie befestigt ist
             for j in range(len(sticks)):
-                if points[i] in sticks[j]:
+                if i in sticks[j]:
                     beteiligte_sticks.append(j)
 
             force = [0, 0]
@@ -201,6 +199,7 @@ def move_points():  # TODO: Funktion testen/debuggen
                 force = get_force(force, get_stickforce(beteiligte_sticks[j], D, i))
                 force[1] = force[1] % 360
 
+            print(force)
             force = get_force(force, g)  # berechnet Kraft mit der Gravitation
             force[1] = force[1] % 360
             force = get_force(force, speed[i])  # berechnet Kraft mit letzter Geschwindigkeit
@@ -223,8 +222,8 @@ def move_points():  # TODO: Funktion testen/debuggen
         speed[i][0] /= 100
         speed[i][1] = speed[i][1] % 360
 
-
-    for i in range(len(points)):  # Loop für alle Punkte mit ihren Geschwindigkeiten
+    # Loop für alle Punkte mit ihren Geschwindigkeiten
+    for i in range(len(points)):  # Teststatus für den Loop: wurde soweit getestet und funktioniert
         if speed[i][1] == 0:  # Sonderfall senkrecht nach unten
             points[i][1] += speed[i][0]
         elif (speed[i][1] - 90) == 0:  # Sonderfall waagerecht nach rechts
@@ -233,28 +232,22 @@ def move_points():  # TODO: Funktion testen/debuggen
             points[i][1] -= speed[i][0]
         elif (speed[i][1] - 270) == 0:  # Sonderfall waagerecht nach links
             points[i][0] -= speed[i][0]
-        else:  # die generellen Fälle (treten eigentlich immer auf)  # TODO: alles was nach dem hier bis zum Ende der Funktion kommt muss irgendwie noch komisch debuggt werden, weil es es nicht mag zu funktionieren
+        else:  # die generellen Fälle (treten eigentlich immer auf)
             if (speed[i][1] - 90) < 0:  # erster Quadrant
-                points[i][0] += speed[i][0] / math.sin(90 - speed[i][1])  # X Koordinate
-                points[i][1] += speed[i][0] / math.sin(speed[i][1])       # Y Koordinate
+                points[i][0] += speed[i][0] * sin(speed[i][1])       # X Koordinate
+                points[i][1] += speed[i][0] * sin(90 - speed[i][1])  # Y Koordinate
             elif (speed[i][1] - 180) < 0:  # zweiter Quadrant
-                speed[i][0] = speed[i][1] - 90  # den Winkel an den Quadranten anpassen
-
-                points[i][0] += speed[i][0] / math.sin(90 - speed[i][1])  # X Koordinate
-                points[i][1] -= speed[i][0] / math.sin(speed[i][1])       # Y Koordinate
+                points[i][0] += speed[i][0] * sin(180 - speed[i][1])  # X Koordinate
+                points[i][1] -= speed[i][0] * sin(270 - speed[i][1])  # Y Koordinate
             elif (speed[i][1] - 270) < 0:  # dritter Quadrant
-                speed[i][0] = speed[i][1] - 180  # den Winkel an den Quadranten anpassen
-
-                points[i][0] -= speed[i][0] / math.sin(90 - speed[i][1])  # X Koordinate
-                points[i][1] -= speed[i][0] / math.sin(speed[i][1])       # Y Koordinate
+                points[i][0] -= speed[i][0] * sin(speed[i][1] - 180)         # X Koordinate
+                points[i][1] -= speed[i][0] * sin(90 - (speed[i][1] - 180))  # Y Koordinate
             else:  # vierter Quadrant
-                speed[i][0] = speed[i][1] - 270  # den Winkel an den Quadranten anpassen
-
-                points[i][0] -= speed[i][0] / math.sin(90 - speed[i][1])  # X Koordinate
-                points[i][1] += speed[i][0] / math.sin(speed[i][1])       # Y Koordinate
-
-    print(points)
-    print('---')
+                print(points, ' | ', speed)
+                points[i][0] -= speed[i][0] * sin(speed[i][1] - 270)            # X Koordinate
+                print(points[i])
+                points[i][1] += speed[i][0] * sin(90 - (speed[i][1] - 270))     # Y Koordinate
+                print(points[i])
     return
 
 
