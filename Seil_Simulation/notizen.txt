@@ -8,6 +8,4 @@ v = math.sqrt(v1 ** 2 + v2 ** 2 + (2 * v1 * v2 * cos(Winkel zwischen beiden)))
 
 Richtung der res. Kraft
 
-großes Rätsel, muss noch gelöst werden
-
-
+funktioniert jetzt irgendwie
