@@ -1,7 +1,6 @@
-import random
 import sys
 import time
-
+import datetime
 import pygame
 import math
 
@@ -12,6 +11,7 @@ FHD = (1920, 1080)
 UHD = (2560, 1440)
 HD = (1080, 720)
 
+
 screen = pygame.display.set_mode(HD)
 
 
@@ -20,11 +20,14 @@ Punktcol = (120, 150, 200)
 Punktfcol = (200, 80, 120)
 Stickcol = (180, 180, 180)
 Hintergrundcol = (50, 100, 170)
-RED = (180, 70, 70)
+RED = (255, 70, 70)
 GREEN = (70, 180, 70)
 
 selected = -1
 # bekommt die Zahl von einem Punkt der angeklickt wurde, ist -1 wenn keiner angeKlickt wurde
+
+font = pygame.font.SysFont(None, 40)
+Zeit = 0
 
 # pygame.draw.circle(screen, Punktcol, (2560, 1440), 20)
 # zeigt einen Punkt an
@@ -45,9 +48,14 @@ speed = [[0, 0] for i in range(len(points))]
 Stick_Länge = []
 
 
+def show_alles():
+    print('--------------------------------------')
+    print(speed)
+    print('--------------------------------------')
+
 
 # rendert den gesamten Screen, hat nichts mit der Physik zu tun
-def render(modus):
+def render(modus, fps):
     screen.fill(Hintergrundcol)
 
     for i in range(len(sticks)):  # jeder Stick soll gerendert werden
@@ -64,10 +72,19 @@ def render(modus):
         elif points[i][2] == 1:  # gefixten Punkt anzeigen
             pygame.draw.circle(screen, Punktfcol, (a, b), 10)
 
+        # den Namen links oberhalb von dem Punkt anzeigen
+        img = font.render(str(i), True, RED)
+
+        screen.blit(img, (a - 10, b - 40))
+
     if modus:
         pygame.draw.circle(screen, GREEN, (20, 20), 20)
     else:
         pygame.draw.circle(screen, RED, (20, 20), 20)
+
+    # fps rendern
+    img = font.render('FPS: ' + str(fps), True, RED)
+    screen.blit(img, (0, 50))
 
     pygame.display.update()
 
@@ -75,7 +92,6 @@ def render(modus):
 # löscht alles an Punkten/Verbindungen was bis jetzt vorhanden ist
 def wipe():
     global points, sticks, speed
-
     points, sticks, speed = [], [], []
 
 
@@ -86,10 +102,18 @@ def intan(x):
 
 # bildet den cos hoch -1 von x und gibt dieses als float zurück, wenn man mehr als 180 Grad erwartet, wird das ergebnis %180 zurückgegeben
 def incos(x):  # wurde getestet
+    if x > 1:
+        x = 1
+    elif x < -1:
+        x = -1
     return math.degrees(math.acos(x))
 
 
 def insinus(x):  # wurde getestet
+    if x > 1:
+        x = 1
+    elif x < -1:
+        x = -1
     return math.degrees(math.asin(x))
 
 
@@ -99,6 +123,21 @@ def cos(x):
 
 def sin(x):
     return math.sin(math.radians(x))
+
+
+# zeigt oben Links die FPS mit denen die Simulation momentan gerendert wird
+def calc_FPS(last_time):
+    Time = time.time()
+
+    differenz = Time - last_time
+
+    if differenz != 0:
+        fps = 1 / differenz
+        fps = (fps // 10) * 10
+    else:
+        fps = 'alle'
+
+    return Time, fps
 
 
 # gibt die Nummer von einem Punkt wenn dieser angeklickt wurde, gibt True wenn einer angeklickt wurde
@@ -112,6 +151,32 @@ def detect_point(a, b):
                 except:
                     return points.index([i, j, 1]), True
     return -1, False
+
+
+# entfernt einen beliebigen Punkt aus dem System
+def delete_point(Punkt):
+    print('Punkt 0 wird gelöscht ')
+    for j in range(len(sticks)):
+        i = 0
+        while i < len(sticks):  # alle Sticks an denen der Punkt beteiligt ist entfernen
+            if Punkt in sticks[i]:
+                print(sticks)
+                sticks.remove(sticks[i])
+                print(sticks)
+
+            i += 1
+
+    for i in range(len(sticks)):  # alle Nachfolgenden Punkte haben ihren Namen geändert -> müssen in Sticks auch geändert werden
+        if sticks[i][0] > Punkt:
+            sticks[i][0] -= 1
+        if sticks[i][1] > Punkt:
+            sticks[i][1] -= 1
+
+    print(sticks)
+
+    speed.remove(speed[Punkt])  # die Geschwindigkeit von dem Punkt entfernen
+
+    points.remove(points[Punkt])
 
 
 # ist um die Standardlänge von einem neuen Stick zu ermitteln
@@ -160,8 +225,8 @@ def get_force(force1, force2):  # Teststatus: Funktion wurde komplett getestet u
 
 #  berechnet Kraft von einem Stick der gestreckt/zusammengedrückt wird
 #  es muss der Stick angegeben werden auf den die Kraft wirkt
-def get_stickforce(stick, D, point_of_attack):  # Teststatus: Funkion wurde komplett getestet und funktioniert
-    F = abs(get_sticklänge(stick) - Stick_Länge[stick]) * 200   # berechnet den Betrag der Kraft
+def get_stickforce(stick, D, point_of_attack):  # Teststatus: Funkion wurde komplett getestet und funktioniert  TODO: beim zusammendrücken testen
+    F = abs(get_sticklänge(stick) - Stick_Länge[stick]) * D   # berechnet den Betrag der Kraft
 
     A = [points[sticks[stick][0]][0], points[sticks[stick][0]][1]]  # Koordinaten von Punkt 1
     B = [points[sticks[stick][1]][0], points[sticks[stick][1]][1]]  # Koordinaten von Punkt 2
@@ -184,6 +249,7 @@ def get_stickforce(stick, D, point_of_attack):  # Teststatus: Funkion wurde komp
 
 def move_points():  # TODO: Funktion testen/debuggen
     global speed, points
+    time.sleep(0.001)
     D = 1  # Stärke der Federn der Sticks
     g = [9.81, 0]
 
@@ -198,8 +264,8 @@ def move_points():  # TODO: Funktion testen/debuggen
             for j in range(len(beteiligte_sticks)):  # berechnet die Kraft von momentaner Kraft und jedem Stick
                 force = get_force(force, get_stickforce(beteiligte_sticks[j], D, i))
                 force[1] = force[1] % 360
+                force[1] = force[1] // 1
 
-            print(force)
             force = get_force(force, g)  # berechnet Kraft mit der Gravitation
             force[1] = force[1] % 360
             force = get_force(force, speed[i])  # berechnet Kraft mit letzter Geschwindigkeit
@@ -243,62 +309,82 @@ def move_points():  # TODO: Funktion testen/debuggen
                 points[i][0] -= speed[i][0] * sin(speed[i][1] - 180)         # X Koordinate
                 points[i][1] -= speed[i][0] * sin(90 - (speed[i][1] - 180))  # Y Koordinate
             else:  # vierter Quadrant
-                print(points, ' | ', speed)
                 points[i][0] -= speed[i][0] * sin(speed[i][1] - 270)            # X Koordinate
-                print(points[i])
                 points[i][1] += speed[i][0] * sin(90 - (speed[i][1] - 270))     # Y Koordinate
-                print(points[i])
     return
 
 
+counter = 0
+# TODO: aus irgendeinem Grund können Punkte die bewegt wurde nicht mehr zu Sticks hinzugefügt werden
+try:
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEMOTION:
+                x, y = event.pos  # gibt die Position der Maus mit Oben Links als (0|0)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                state = pygame.mouse.get_pressed()
+                if state[0]:  # linker Mousebutton -> loser Punkt soll hinzugefügt werden
+                    points.append([x, y, 0])
+                    speed.append([0, 0])
+                elif state[2]:  # rechter Mousebutton -> gefixter Punkt soll hinzugefügt werden
+                    points.append([x, y, 1])
+                    speed.append([0, 0])
+                elif state[1]:  # mittlerer Mousebutton wurde gedrückt, soll die Möglichkeit geben 2 Punkte mit einem Seil zu verbinden/trennen
+                    Punkt, test = detect_point(x, y)
+                    print(Punkt )
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == pygame.MOUSEMOTION:
-            x, y = event.pos  # gibt die Position der Maus mit Oben Links als (0|0)
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            state = pygame.mouse.get_pressed()
-            if state[0]:  # linker Mousebutton -> loser Punkt soll hinzugefügt werden
-                points.append([x, y, 0])
-                speed.append([0, 0])
-            elif state[2]:  # rechter Mousebutton -> gefixter Punkt soll hinzugefügt werden
-                points.append([x, y, 1])
-                speed.append([0, 0])
-            elif state[1]:  # mittlerer Mousebutton wurde gedrückt, soll die Möglichkeit geben 2 Punkte mit einem Seil zu verbinden/trennen
-                Punkt, test = detect_point(x, y)
-
-                if test:
-                    if selected == -1:
-                        selected = Punkt
-                    else:
-                        if [selected, Punkt] in sticks or [Punkt, selected] in sticks:  # wenn an dieser Stelle eine Verbindung ist -> entferne diese
-                            try:
-                                i = sticks.index([selected, Punkt])
-
-                                Stick_Länge.remove(Stick_Länge[i])
-                                sticks.remove(sticks[i])
-                                speed.remove(speed[i])
-                            except:
-                                i = sticks.index([Punkt, selected])
-
-                                Stick_Länge.remove(Stick_Länge[i])
-                                sticks.remove(sticks[i])
-                                speed.remove(speed[i])
+                    if test:
+                        if selected == -1:
+                            selected = Punkt
                         else:
-                            sticks.append([selected, Punkt])
-                            Stick_Länge.append(get_sticklänge(len(sticks) - 1))
+                            if [selected, Punkt] in sticks or [Punkt, selected] in sticks:  # wenn an dieser Stelle eine Verbindung ist -> entferne diese
+                                try:
+                                    i = sticks.index([selected, Punkt])
 
-                        selected = -1
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                Mode = not Mode
-            elif event.key == pygame.K_c:
-                wipe()
+                                    Stick_Länge.remove(Stick_Länge[i])
+                                    sticks.remove(sticks[i])
+                                    speed.remove(speed[i])
+                                except:
+                                    i = sticks.index([Punkt, selected])
 
-    if Mode:
-        move_points()
+                                    Stick_Länge.remove(Stick_Länge[i])
+                                    sticks.remove(sticks[i])
+                                    speed.remove(speed[i])
+                            else:
+                                sticks.append([selected, Punkt])
+                                Stick_Länge.append(get_sticklänge(len(sticks) - 1))
 
-    render(Mode)
+                            selected = -1
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    Mode = not Mode
+                elif event.key == pygame.K_c:
+                    wipe()
+                elif event.key == pygame.K_1:
+                    show_alles()
+
+        if Mode:
+            move_points()
+
+        if counter % 1000 == 0:
+            Zeit, FPS = calc_FPS(Zeit)
+        else:
+            Zeit, Trash = calc_FPS(Zeit)
+
+        render(Mode, FPS)
+
+        counter += 1
+
+
+except:  # wenn irgendwo, irgendein Fehler auftritt, wird die Situation von davor in ein Logfile geschrieben
+    print('Ein Fehler ist aufgetreten')
+    f = open('log.txt', 'a')
+
+    f.write('\n----')
+    f.write('\nEin Fehler in der Simulation ist aufgetreten. \nZeitpunkt an dem der Fehler aufgetreten ist: ' + str(datetime.datetime.now()))
+    f.write('\nDie Punkte: ' + str(points) + '\ndie Sticks: ' + str(sticks) + '\ndie Geschwindigkeiten: ' + str(speed) + '\n')
+    f.write('----\n')
+    f.close()

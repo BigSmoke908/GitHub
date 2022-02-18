@@ -9,3 +9,8 @@ v = math.sqrt(v1 ** 2 + v2 ** 2 + (2 * v1 * v2 * cos(Winkel zwischen beiden)))
 Richtung der res. Kraft
 
 funktioniert jetzt irgendwie
+
+
+
+
+force = [0.35874343266846154, 44.089273322308436]  (die Stickforce)
