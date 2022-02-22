@@ -19,6 +19,16 @@ Farben = [(random.randrange(0, 255), random.randrange(0, 255), random.randrange(
 # das False ist bei den Clustern irrelevant
 
 
+# randomisiert die Farben aller Punkte neu (so viele wie es ebene Punkte in dem Moment gibt
+def neue_farben():
+    return [(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255)) for i in range(len(Punkte))]
+
+
+# erstellt Punkte mit 2 Dimensionen im gewünschten Format (Parameter sind selbsterklärend)
+def punkte_erstellen(anzahl, bereichx, bereichy):
+    return [['P', random.randrange(bereichx[0], bereichx[1]), random.randrange(bereichy[0], bereichy[1]), -1, False] for i in range(anzahl)]
+
+
 def render(punktsize):
     screen.fill((0, 0, 0))
     highest_cluster = -1  # speichert bei welchem Cluster die höchste Verschacheltung besteht (die meisten Cluster sind bereits darin vorhanden)
@@ -110,9 +120,27 @@ def get_distanz(punkt1, punkt2):
     return math.sqrt(a ** 2 + b ** 2)
 
 
+def zeige_cluster():
+    alles = []
+
+    for i in range(len(Punkte)):
+        if Punkte[i][0] == 'C':
+            alles.append(Punkte[i])
+    print(alles)
+
+
 geringste_Distanz = [-1, -1, 99999999999999999999999999]  # speichert die geringste Distanz zwischen zwei Punkten, und wie groß diese Distanz ist (muss am Anfang irgendwas extrem hohes sein
-Max = 100  # gibt an, wie groß die Distanz zwischen 2 Dingen maximal sein darf, damit sie ein Cluster formen
+Max = 300  # gibt an, wie groß die Distanz zwischen 2 Dingen maximal sein darf, damit sie ein Cluster formen
 Mode = False  # wird auf True gesetzt, wenn das Clustering durchgeführt werden soll
+
+
+Punkte = punkte_erstellen(20, [400, 600], [500, 700])
+buffer = punkte_erstellen(20, [1000, 1150], [400, 600])
+for i in range(len(buffer)):
+    Punkte.append(buffer[i])
+
+Farben = neue_farben()
+
 while True:
     render(10)
 
@@ -120,22 +148,29 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.key:
-            Mode = not Mode
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                Mode = not Mode
+                print('Der Status von dem anlernen ist: ' + str(Mode))
+            elif event.key == pygame.K_c:
+                zeige_cluster()
 
-    if Mode and geringste_Distanz < Max:
-        buffer = geringste_Distanz  # wird später benutzt um zu gucken ob es eine Änderung gegeben hat
+    if Mode and (geringste_Distanz[2] < Max or geringste_Distanz[2] == 99999999999999999999999999):  # wenn die geringst Distanz noch nicht verändert wurde soll sie auch neu berechnet werden
+        buffer = geringste_Distanz[2]  # wird später benutzt um zu gucken ob es eine Änderung gegeben hat
         for i in range(len(Punkte)):  # Counter für die ersten Punkte
             for j in range(len(Punkte)):  # Counter für die zweiten Punkte
                 if j != i:
-                    if not not Punkte[i][4] and not Punkte[j][4]:  # wenn die beiden Punkte in noch keinem Cluster vorhanden sind
-                        if get_distanz(i, j ) < geringste_Distanz:
-                            geringste_Distanz = get_distanz(i, j)
+                    if not Punkte[i][4] and not Punkte[j][4]:  # wenn die beiden Punkte in noch keinem Cluster vorhanden sind
+                        if get_distanz(i, j) < geringste_Distanz[2]:
+                            geringste_Distanz[2] = get_distanz(i, j)
+                            geringste_Distanz[0], geringste_Distanz[1] = i, j
+                            print(geringste_Distanz)
 
         highest_Cluster = -1  # gibt an wie "hoch" das höchste Cluster in der momentanen Konfiguration ist
 
-        if buffer != geringste_Distanz:  # hat es eine Änderung gegeben? (sonst wäre es nutzlos wieder dasselbe Cluster versuchen hinzuzufügen
+        if buffer != geringste_Distanz[2]:  # hat es eine Änderung gegeben? (sonst wäre es nutzlos wieder dasselbe Cluster versuchen hinzuzufügen
             # ist einer der Punkte bereits ein Cluster? -> die Clusterhöhe von dem nächsten muss höher als dieses sein
+            print('die geringste Distanz wurde gefunden. Sie beträgt: ' + str(geringste_Distanz[2]) + '. Sie befindet sich zwischen den Punkten ' + str(geringste_Distanz[0]) + ' und ' + str(geringste_Distanz[1]) + '.')
             if Punkte[geringste_Distanz[0]][0] == 'C':
                 if Punkte[geringste_Distanz[0]][3] > highest_Cluster:
                     highest_Cluster = Punkte[geringste_Distanz[0]][3]
@@ -145,7 +180,9 @@ while True:
 
             highest_Cluster += 1  # das nächste Cluster 1 höher eintragen
 
-            Punkte[Punkte.index(geringste_Distanz[0])][4] = False  # beide Punkte als bereits in einem Cluster eintragen
-            Punkte[Punkte.index(geringste_Distanz[1])][4] = False
+            Punkte[geringste_Distanz[0]][4] = False  # beide Punkte als bereits in einem Cluster eintragen
+            Punkte[geringste_Distanz[1]][4] = False
 
             Punkte.append(['C', geringste_Distanz[0], geringste_Distanz[1], highest_Cluster, False])
+
+            print('ein neues Cluster konnte hinzugefügt werden')
