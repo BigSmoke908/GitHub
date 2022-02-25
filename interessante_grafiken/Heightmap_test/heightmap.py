@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing as mp
 
-LayerBereich = [2, 12]  # gibt den Bereich an, in dem sich der Faktor von den Layern während dem erstellen befindet, ist minimal 1 und maximal die 2er Potenz, mit der man auf die Größe der Map kommt (je größer, desto glatteres Terrain)
+LayerBereich = [1, 12]  # gibt den Bereich an, in dem sich der Faktor von den Layern während dem erstellen befindet, ist minimal 1 und maximal die 2er Potenz, mit der man auf die Größe der Map kommt (je größer, desto glatteres Terrain)
 mapSize = 2048  # Größe der Map in Höhe mal Breite (muss eine 2er Potenz sein)
 Map = []  # soll als List (alle Zeilen einfach hintereinander die Karte sein
 begin = time.time()
@@ -79,73 +79,6 @@ def generate_heightmap(layerbereich, size):
 
 
 # generiert eine Heightmap, indem verschiedene Layer übereinander gelegt werden, min/max sind mindest/maximal Höhe
-def generate_heightmap(layerbereich, size):
-    height_map = [[0 for i in range(size)] for j in range(size)]
-    layermaps = {}  # speichert die Karte von jedem einzelnen
-
-    # es sollen nacheinander verschiedene Bereiche erstelle werden, welche dann eine Höhe erhalten, welche dann alle
-    # zusammen diesen Layer bilden sollen
-    h = layerbereich[0]
-    while h <= layerbereich[1]:
-        bereiche = []  # immer die Begrenzungen von einem Bereich
-
-        #  die Maße von den momentanen Bereichen
-
-        length = size
-        for i in range(h):
-            length /= 2
-
-        # generiert für jedes einzelne Layer die Bereiche, diese erhalten noch keine Höhe (wird erst bei dem nächsten Schritt festgelegt
-        for i in range(1, size + 1):  # Loop für alle Werte (da immer ein Quadrat entsteht, reicht eine Seitenkante
-            if i % length == 0 and i not in bereiche:
-                bereiche.append(i)
-
-        layermaps.update({h: []})
-        layermaps[h] = bereiche     # enthält dann von allen Layern den Bereich (wo die Höhe jeweils wirkt) und
-                                    # den Betrag (von der jeweiligen Höhe)
-        h += 1
-
-    print('Einzelne Schichten wurden erstellt. Die Schichten werden jetzt zusammengefügt')
-
-    for i in layermaps:  # alle einzelnen Karten durchgehen (i entspricht h von vorher)
-        tile_y = 0  # Y Platz (in der List) von dem Tile, welches gerade genutzt wird
-        tile_x = 0  # X Platz (in der List) von dem Tile, welches gerade genutzt wird
-        y = 0  # Y Koordinate auf der heightmap
-        x = 0  # X Koordinate auf der heightmap
-
-        momentane_karte = layermaps[i]  # (ist dann einfacher bei jedes Mal aufrufen)
-
-        momentane_höhen = [[random.randrange(0, 255) for j in range(len(momentane_karte))] for k in range(len(momentane_karte))]
-        # eine Karte in der die Höhen der einzelnen Tiles drinstehen
-
-        while True:  # fügt alle einzelnen Karten zusammen
-            if y == len(height_map):  # am Boden angekommen?
-                break
-            elif x == len(height_map):  # an der rechten Wand angekommen
-                x = 0
-                tile_x = 0
-                y += 1
-            elif y == momentane_karte[tile_y]:  # muss das Tile geändert werden?
-                tile_y += 1
-            elif x == momentane_karte[tile_x]:  # muss das Tile geändert werden?
-                tile_x += 1
-            else:  # die Höhe kann bei dem jeweiligen eingetragen werden
-                height_map[y][x] = (height_map[y][x] * 2) + momentane_höhen[tile_y][tile_x]
-                x += 1
-
-        print('Es wurde eine neue Schicht hinzugefügt und die Karte wird gerade geglättet. Das ist Schicht Nummer ' + str(i))
-        height_map = smooth_map(height_map, i)
-
-    print('Die Schichten wurden zusammengefügt. Jetzt werden die Daten "bereinigt"')
-
-    # jetzt müssen die Datenpunkte noch so erhöht/erniedrigt werden, dass sie zwischen 0 und 255 liegen
-    height_map = scale_map(height_map)
-
-    print('Die Heightmap wurde fertig erstellt, jetzt wird sie in eine Bilddatei umgewandelt')
-    return height_map
-
-
-# generiert eine Heightmap, indem verschiedene Layer übereinander gelegt werden, min/max sind mindest/maximal Höhe
 def generate_andere_heightmap(layerbereich, size):
     height_map = [[-1 for i in range(size)] for j in range(size)]
     layermaps = {}  # speichert die Karte von jedem einzelnen
@@ -205,6 +138,7 @@ def generate_andere_heightmap(layerbereich, size):
                 x += 1
 
         print('Es wurde eine neue Schicht hinzugefügt und die Karte wird gerade geglättet. Das ist Schicht Nummer ' + str(i))
+        height_map = mp_smooth_map(height_map, i)
 
         # die momentane Karte in ein Bild umwandeln
         buffer = []
@@ -224,7 +158,7 @@ def generate_andere_heightmap(layerbereich, size):
 
     render_heightmap(height_map)
 
-    height_map = smooth_map(height_map, 1)
+    height_map = mp_smooth_map(height_map, 1)
 
     print('Die Schichten wurden zusammengefügt. Jetzt werden die Daten "bereinigt"')
 
@@ -238,12 +172,30 @@ def generate_andere_heightmap(layerbereich, size):
 # nimmt ein Heightmap und glättet sie etwas (Punkte die nebeneinander liegen, bekommen eine ähnliche Höhe)
 # macht mitunter seltsame Dinge, könnte vielleicht noch verbessert werden (Durchschnitt von mehr als nur 9 Feldern bespielsweise)
 def smooth_map(karte, h):
+    # zusätzliche Seiten anhängen
+    karte.insert(0, karte[0].copy())  # oben
+    karte.append(karte[-1].copy())  # unten
+
+    for c in range(len(karte)):
+        karte[c].insert(0, karte[c][0])
+        karte[c].append(karte[c][-1])
+
     buffer = karte.copy()
-    for c in range(100//h):
+
+    for c in range(100 // h):
         karte = buffer.copy()
-        for a in range(1, len(karte) - 1):
-            for b in range(1, len(karte) - 1):
-                buffer[a][b] = (karte[a][b] + karte[a - 1][b] + karte[a - 1][b - 1] + karte[a][b - 1] + karte[a + 1][b - 1] + karte[a + 1][b] + karte[a + 1][b + 1] + karte[a][b + 1] + karte[a - 1][b + 1]) // 9
+        for a in range(1, len(buffer) - 1):
+            for b in range(1, len(buffer) - 1):
+                buffer[a][b] = (karte[a][b] + karte[a - 1][b] + karte[a - 1][b - 1] + karte[a][b - 1] + karte[a + 1][
+                    b - 1] + karte[a + 1][b] + karte[a + 1][b + 1] + karte[a][b + 1] + karte[a - 1][b + 1]) // 9
+
+    buffer.remove(buffer[0])
+    buffer = buffer[:-1]
+
+    for c in range(len(buffer)):
+        buffer[c].remove(buffer[c][0])
+        buffer[c] = buffer[c][:-1]
+
     return buffer
 
 
@@ -257,14 +209,14 @@ def smooth_map_neu(karte, h, q, sector):
 # macht das gleich wie das andere smoothen, aber hoffentlich deutlich schneller (teilt das smoothen in 4 Einzelprozesse)
 # die Funktion ruft auch letztendlich nur wieder die anderen smoothing Karte mit mehreren Unterprozessen auf
 def mp_smooth_map(karte, h):
-    # als erstes die Karte in 4 einzelne Prozesse unterteilen, welche dann normal geglättet werden
-    maße = [(len(karte)//2) + 1, (len(karte)//2) - 1, len(karte)]  # speichert die einzelnen Parameter (müssen nicht zig mal aufgerufen werden)
-    buffer1 = [[karte[y][x] for x in range(0, maße[0])] for y in range(0, maße[0])]  # oben Links
-    buffer2 = [[karte[y][x] for x in range(maße[1], maße[2])] for y in range(0, maße[0])]  # oben Rechts
-    buffer3 = [[karte[y][x] for x in range(0, maße[0])] for y in range(maße[1], maße[2])]  # unten Links
-    buffer4 = [[karte[y][x] for x in range(maße[1], maße[2])] for y in range(maße[1], maße[2])]  # unten Rechts
-
     if __name__ == '__main__':
+        # als erstes die Karte in 4 einzelne Prozesse unterteilen, welche dann normal geglättet werden
+        maße = [(len(karte)//2) + 1, (len(karte)//2) - 1, len(karte)]  # speichert die einzelnen Parameter (müssen nicht zig mal aufgerufen werden)
+        buffer1 = [[karte[y][x] for x in range(0, maße[0])] for y in range(0, maße[0])]  # oben Links
+        buffer2 = [[karte[y][x] for x in range(maße[1], maße[2])] for y in range(0, maße[0])]  # oben Rechts
+        buffer3 = [[karte[y][x] for x in range(0, maße[0])] for y in range(maße[1], maße[2])]  # unten Links
+        buffer4 = [[karte[y][x] for x in range(maße[1], maße[2])] for y in range(maße[1], maße[2])]  # unten Rechts
+
         q = mp.Queue()
         # erstelle mit den einzelnen Karten die Prozesse
         p1 = mp.Process(target=smooth_map_neu, args=(buffer1, h, q, 1))
@@ -277,14 +229,14 @@ def mp_smooth_map(karte, h):
         for p in prozesse:
             p.start()
 
+        print('Das eigentliche smoothen ist abgeschlossen, jetzt werden die Daten wieder zusammengefügt\n\n')
+
         ergebnisse = [q.get() for p in prozesse]  # enthält alle 4 Sektoren, aber wohlmöglich in falscher Reihenfolge!!
 
         del q
         # alle Prozesse werden beendet
         for p in prozesse:
             p.join()
-
-        print('Das eigentlich smoothen ist abgeschlossen, jetzt werden die Daten wieder zusammengefügt')
 
         sektoren = []  # soll alle einzelnen Sektoren in richtiger Reihenfolge speichern (wird hiernach gemacht)
         while len(sektoren) < len(ergebnisse):
@@ -335,7 +287,38 @@ def mp_smooth_map(karte, h):
             for a in range(seitenlänge):
                 for b in range(seitenlänge):
                     glatte_karte[a + offset_y][b + offset_x] = sektor[a][b]
-    return glatte_karte
+        # TODO: die mittleren Bereiche müsse noch geglättet werden (sonst bildet sich ein seltsames Kreuz in der Mitte)
+
+        glatte_karte = smooth_cross(glatte_karte, h)
+
+        buffer_neu = scale_map(glatte_karte.copy())
+        buffer_super_neu = []
+        for this in range(len(glatte_karte)):
+            for that in range(len(glatte_karte)):
+                height = buffer_neu[this][that]
+                buffer_super_neu.append((height, height, height))
+
+        make_png(buffer_super_neu, 'Heightmap_test/' + str(h) + '.png', len(glatte_karte))
+        return glatte_karte
+
+
+def smooth_cross(karte, h):
+    for c in range(100//h):
+        buffer = karte.copy()
+
+        # in dem for Loop, können bei jedem Schritt gleich 2 Felder auf einmal geglättet werden!! (a/b verstauschen)
+        for a in range((len(karte)//2) - 10, (len(karte)//2) + 10):  # nimmt nur die Mitte
+            for b in range(1, len(karte) - 1):  # nimmt die gesamt Länge
+                buffer[a][b] = (karte[a - 1][b] + karte[a - 1][b - 1] + karte[a][b - 1] + karte[a + 1][b - 1] + karte[a + 1][b] + karte[a + 1][b + 1] + karte[a][b + 1] + karte[a - 1][b + 1]) // 8
+                buffer[b][a] = (karte[b - 1][a] + karte[b - 1][a - 1] + karte[b][a - 1] + karte[b + 1][a - 1] + karte[b + 1][a] + karte[b + 1][a + 1] + karte[b][a + 1] + karte[b - 1][a + 1]) // 8
+
+        if c %2 == 0:
+            # in dem for Loop, können bei jedem Schritt gleich 2 Felder auf einmal geglättet werden!! (a/b verstauschen)
+            for a in range((len(karte) // 2) - 50, (len(karte) // 2) + 50):  # nimmt nur die Mitte
+                for b in range(1, len(karte) - 1):  # nimmt die gesamt Länge
+                    buffer[a][b] = (karte[a - 1][b] + karte[a - 1][b - 1] + karte[a][b - 1] + karte[a + 1][b - 1] + karte[a + 1][b] + karte[a + 1][b + 1] + karte[a][b + 1] + karte[a - 1][b + 1]) // 8
+                    buffer[b][a] = (karte[b - 1][a] + karte[b - 1][a - 1] + karte[b][a - 1] + karte[b + 1][a - 1] + karte[b + 1][a] + karte[b + 1][a + 1] + karte[b][a + 1] + karte[b - 1][a + 1]) // 8
+    return buffer
 
 
 def make_png(map, file, size):
@@ -412,3 +395,15 @@ if __name__ == '__main__':
     end = time.time() - begin
     print('Das Rendern hat ' + str(end) + ' Sekunden gedauert')
     render_heightmap(Map)
+
+    Map = mp_smooth_map(Map, 10)
+
+    Fertig = []
+
+    for i in range(len(Map)):
+        for j in range(len(Map)):
+            Height = Map[i][j]
+            Fertig.append((Height, Height, Height))
+
+    render_heightmap(Map)
+    make_png(Fertig, 'Heightmap_test/supercool.png', mapSize)
