@@ -71,6 +71,7 @@ def smooth_karte(karte, faktor, partsize):
 
     func = partial(smooth, h=faktor)
     result = p.map(func, iterable=teile)
+    # TODO: momentan wird einfach nur so oft wie der Faktor sagt jeder Abschnitt alleine gesmoothet, aber nicht zusammen
 
     p.close()
     p.join()
@@ -95,32 +96,40 @@ def smooth_karte(karte, faktor, partsize):
     return glatt
 
 
+# TODO: maximum noch integrieren
 # platziert bei einer angegebenen Position einen kreisrunden Berg, mit der bei maxi angegeben maximalhöhe (wird auf vor-
 # handenes Terrain raufaddiert), der radius gibt den Radius von dem Berg an
-def place_circle(karte, x, y, maxi, radius):
-    bereich = [(x - radius, x + radius), (y - radius, y + radius)]  # der Bereich in dem der Berg gebaut wird
+def place_circle(karte, pos, maxi, radius):
+    bereich = [[pos[0] - radius, pos[0] + radius], [pos[1] - radius, pos[1] + radius]]  # der Bereich in dem der Berg gebaut wird
 
     if bereich[0][0] < 0:
         bereich[0][0] = 0
     if bereich[0][1] >= len(karte[0]):
-        bereich[0][1] = len(karte[0]) - 1
+        bereich[0][1] = len(karte[0])
     if bereich[1][0] < 0:
         bereich[1][0] = 0
     if bereich[1][1] >= len(karte):
-        bereich[1][1] = len(karte) - 1
+        bereich[1][1] = len(karte)
 
-    for a in range(len(bereich)):  # Y
-        for b in range(len(bereich[a])):  # X
-            distanz = pythagoras(karte[b][a], karte[y][x])
+    offset = -1  # wie viel alles erhöht werden muss (damit keine negativen Werte entstehen)
+    for a in range(bereich[0][0], bereich[0][1]):  # Y
+        for b in range(bereich[1][0], bereich[1][1]):  # X
+            distanz = pythagoras((b, a), pos)
             if distanz < radius:
-                karte[b][a] += maxi ** (1/distanz)
-
+                if offset == -1:  # wir sind an einem Punkt, der am weitesten weg ist
+                    mitte = [(int(abs(bereich[0][0] - bereich[0][1]))), (int(abs(bereich[1][0] - bereich[1][1])))]
+                    buffer_distanz = pythagoras(mitte, pos)
+                    offset = abs((-2 * buffer_distanz) - (buffer_distanz ** 2))
+                    height = ((-2 * distanz) - (distanz ** 2) + offset) * radius
+                    if height < 0:
+                        height = 0
+                karte[a][b] += height
     return karte
 
 
 # nimmt X/Y Koordinate zweier Punkte und gibt deren Distanz zurück
 def pythagoras(a, b):
-    return math.sqrt((abs(a[0] - b[0]) ** 2) + (abs(a[1] - b[1]) ** 2))
+    return math.sqrt((abs(a[0] - b[0]) ** 2) + (abs(a[1] - b[1]) ** 2)) + 1
 
 
 # glättet einen bestimmten Abschnitt (wird vorher geteilt) von der Karte
@@ -130,29 +139,32 @@ def smooth(karte, h):
         karte = buffer.copy()
         for a in range(1, len(buffer) - 1):
             for b in range(1, len(buffer[a]) - 1):
-                buffer[a][b] = (karte[a][b] + karte[a - 1][b] + karte[a - 1][b - 1] + karte[a][b - 1] +karte[a + 1][b - 1] + karte[a + 1][b] + karte[a + 1][b + 1] + karte[a][b + 1] + karte[a - 1][b + 1]) / 9
+                buffer[a][b] = (karte[a][b] + karte[a - 1][b] + karte[a - 1][b - 1] + karte[a][b - 1] + karte[a + 1][b - 1] + karte[a + 1][b] + karte[a + 1][b + 1] + karte[a][b + 1] + karte[a - 1][b + 1]) / 9
                 #buffer[a][b] = '_'
     return buffer
 
 
 def scale_map(karte):
-    maximum = 0
-    for q in range(len(karte)):
-        for r in range(len(karte)):
-            if maximum < karte[q][r]:
-                maximum = karte[q][r]
+    alles = [karte[i][j] for i in range(len(karte)) for j in range(len(karte))]
+    maximum = max(alles)
 
-    scale = 255 / maximum
+    if maximum != 0:
+        scale = 255 / maximum
+    else:
+        scale = 1
     for q in range(len(karte)):
         for r in range(len(karte)):
             karte[q][r] = int(karte[q][r] * scale)
     return karte
 
 
-def make_png(karte, file, size):
-    img = Image.new('RGB', (size, size))
-    img.putdata(karte)
+def make_png(karte, file):
+    karte = scale_map(karte)
+    fertig = [(karte[a][b], karte[a][b], karte[a][b]) for a in range(len(karte)) for b in range(len(karte))]
+    img = Image.new('RGB', (len(karte), len(karte)))
+    img.putdata(fertig)
     img.save(file)
+    print('Die Datei "' + file + '" wurde erstellt.')
 
 
 def zeichne_feld(a):
@@ -165,27 +177,39 @@ def zeichne_feld(a):
     print("")
 
 
+def render_heightmap(map):
+    z = np.array([[map[y][x] for x in range(len(map))] for y in range(len(map))])
+    x, y = np.meshgrid(range(z.shape[0]), range(z.shape[1]))
+
+    # show hight map in 3d
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(x, y, z)
+    plt.title('z as 3d height map')
+    plt.show()
+
+
 if __name__ == '__main__':
-    Größe = 10000
-    Karte = [[random.randrange(0, 10) for i in range(Größe)] for j in range(Größe)]
+    X = 4096
+    Y = 4096
+    Karte = [[0 for i in range(X)] for j in range(Y)]
 
     print('Karte wurde erstellt')
 
-    Karte = scale_map(Karte)
+    make_png(Karte, 'Test1.png')
 
-    Fertig = []
-    for c in Karte:
-        for d in c:
-            e = int(d)
-            Fertig.append((e, e, e))
-    make_png(Fertig, 'Test1.png', len(Karte))
-
+    print('Der Berg wird platziert')
     for i in range(1):
-        Karte = smooth_karte(Karte, 1, 3)
+        Pos = (random.randrange(0, X), random.randrange(0, Y))
+        Radius = random.randrange(1000, 1100)
+        Karte = place_circle(Karte, Pos, 10, Radius)
+        print(Pos, Radius)
 
-    Fertig = []
-    for c in Karte:
-        for d in c:
-            e = int(d)
-            Fertig.append((e, e, e))
-    make_png(Fertig, 'Test2.png', len(Karte))
+    make_png(Karte, 'Test2.png')
+
+    for i in range(10):
+        Karte = smooth_karte(Karte, 1, 400)
+
+    make_png(Karte, 'Test3.png')
+
+    render_heightmap(Karte)
