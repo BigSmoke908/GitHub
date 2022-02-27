@@ -1,3 +1,4 @@
+import math
 import random
 import sys
 from PIL import Image
@@ -37,6 +38,7 @@ def smooth_karte(karte, faktor, partsize):
     # enthält einzelne Zeilen die von den Prozessen übernommen werden
     teile = []
 
+    # TODO: bessere Methode, um die Anzahl Abschnitten zu ermitteln
     failed = True  # ist false, wenn es geschafft wurde alles so aufzuteilen, dass jeder Streifen mindestens 3 lang ist
     bereits_geändert = False  # ist True, wenn die partsize bereits extrem klein gestellt wurde
     while failed:
@@ -93,6 +95,34 @@ def smooth_karte(karte, faktor, partsize):
     return glatt
 
 
+# platziert bei einer angegebenen Position einen kreisrunden Berg, mit der bei maxi angegeben maximalhöhe (wird auf vor-
+# handenes Terrain raufaddiert), der radius gibt den Radius von dem Berg an
+def place_circle(karte, x, y, maxi, radius):
+    bereich = [(x - radius, x + radius), (y - radius, y + radius)]  # der Bereich in dem der Berg gebaut wird
+
+    if bereich[0][0] < 0:
+        bereich[0][0] = 0
+    if bereich[0][1] >= len(karte[0]):
+        bereich[0][1] = len(karte[0]) - 1
+    if bereich[1][0] < 0:
+        bereich[1][0] = 0
+    if bereich[1][1] >= len(karte):
+        bereich[1][1] = len(karte) - 1
+
+    for a in range(len(bereich)):  # Y
+        for b in range(len(bereich[a])):  # X
+            distanz = pythagoras(karte[b][a], karte[y][x])
+            if distanz < radius:
+                karte[b][a] += maxi ** (1/distanz)
+
+    return karte
+
+
+# nimmt X/Y Koordinate zweier Punkte und gibt deren Distanz zurück
+def pythagoras(a, b):
+    return math.sqrt((abs(a[0] - b[0]) ** 2) + (abs(a[1] - b[1]) ** 2))
+
+
 # glättet einen bestimmten Abschnitt (wird vorher geteilt) von der Karte
 def smooth(karte, h):
     buffer = karte.copy()
@@ -136,9 +166,26 @@ def zeichne_feld(a):
 
 
 if __name__ == '__main__':
-    Größe = 10
-    Karte = [[j for i in range(Größe)] for j in range(Größe)]
-    zeichne_feld(Karte)
-    for i in range(2):
+    Größe = 10000
+    Karte = [[random.randrange(0, 10) for i in range(Größe)] for j in range(Größe)]
+
+    print('Karte wurde erstellt')
+
+    Karte = scale_map(Karte)
+
+    Fertig = []
+    for c in Karte:
+        for d in c:
+            e = int(d)
+            Fertig.append((e, e, e))
+    make_png(Fertig, 'Test1.png', len(Karte))
+
+    for i in range(1):
         Karte = smooth_karte(Karte, 1, 3)
-        zeichne_feld(Karte)
+
+    Fertig = []
+    for c in Karte:
+        for d in c:
+            e = int(d)
+            Fertig.append((e, e, e))
+    make_png(Fertig, 'Test2.png', len(Karte))
