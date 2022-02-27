@@ -1,0 +1,16 @@
+Speed = VS (Geschwindigkeit von Stick) & VLB (Bewegung letzter Frame) & VG (Gravitation
+
+VS = s * D (s = wie viel Länger/Kürzer ein Stick ist, D ist Federkonstante/die Richtung ist die Richtung von dem Stick)
+VLB = was halt die letzte Bewegung war/die Richtung bleibt beibehalten
+VG = 9,81 (oder irgendeine andere konstante, die Richtung ist senkrecht nach unten)
+
+v = math.sqrt(v1 ** 2 + v2 ** 2 + (2 * v1 * v2 * cos(Winkel zwischen beiden)))
+
+Richtung der res. Kraft
+
+funktioniert jetzt irgendwie
+
+
+
+
+force = [0.35874343266846154, 44.089273322308436]  (die Stickforce)

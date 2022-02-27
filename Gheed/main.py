@@ -3,6 +3,7 @@ from selenium import webdriver as driver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 import sys
+from selenium.webdriver.common.by import By
 
 keyboard = Controller()
 
@@ -55,7 +56,7 @@ for i in range(len(Tasks)):
     fenster.get('https://gheed.com/giveaways/g-' + Links[i])
 
     sleep(2)
-    button = driver.find_element_by_xpath('/html/body/div[1]/div/div[2]/div/div[1]/div/div[6]/div/div/button[2]/span[1]')
+    button = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[2]/div/div[1]/div/div[6]/div/div/button[2]/span[1]')
     button.click()
     # zu Aufgaben wechseln
 
