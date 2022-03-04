@@ -112,18 +112,21 @@ def place_circle(karte, pos, maxi, radius):
         bereich[1][1] = len(karte)
 
     offset = -1  # wie viel alles erhöht werden muss (damit keine negativen Werte entstehen)
+    print(bereich)
     for a in range(bereich[0][0], bereich[0][1]):  # Y
         for b in range(bereich[1][0], bereich[1][1]):  # X
             distanz = pythagoras((b, a), pos)
+
             if distanz < radius:
                 if offset == -1:  # wir sind an einem Punkt, der am weitesten weg ist
                     mitte = [(int(abs(bereich[0][0] - bereich[0][1]))), (int(abs(bereich[1][0] - bereich[1][1])))]
                     buffer_distanz = pythagoras(mitte, pos)
+                    print(buffer_distanz)
                     offset = abs((-2 * buffer_distanz) - (buffer_distanz ** 2))
-                    height = ((-2 * distanz) - (distanz ** 2) + offset) * radius
-                    if height < 0:
-                        height = 0
-                karte[a][b] += height
+                height = (2*math.e**-distanz) - math.e**(0.1*math.sqrt(distanz)) + 50
+                if height < 0:
+                    height = 0
+                karte[b][a] += height
     return karte
 
 
@@ -150,16 +153,27 @@ def scale_map(karte):
 
     if maximum != 0:
         scale = 255 / maximum
-    else:
-        scale = 1
-    for q in range(len(karte)):
-        for r in range(len(karte)):
-            karte[q][r] = int(karte[q][r] * scale)
+
+        for q in range(len(karte)):
+            for r in range(len(karte)):
+                karte[q][r] = int(karte[q][r] * scale)
+    return karte
+
+
+def raise_and_scale(karte):
+    alles = [karte[i][j] for i in range(len(karte)) for j in range(len(karte[i]))]
+    minimum = min(alles)
+
+    if minimum < 0:
+        for i in range(len(karte)):
+            for j in range(len(karte[i])):
+                karte[i][j] += abs(minimum)
+    karte = scale_map(karte)
     return karte
 
 
 def make_png(karte, file):
-    karte = scale_map(karte)
+    karte = raise_and_scale(karte)
     fertig = [(karte[a][b], karte[a][b], karte[a][b]) for a in range(len(karte)) for b in range(len(karte))]
     img = Image.new('RGB', (len(karte), len(karte)))
     img.putdata(fertig)
@@ -177,11 +191,11 @@ def zeichne_feld(a):
     print("")
 
 
-def render_heightmap(map):
-    z = np.array([[map[y][x] for x in range(len(map))] for y in range(len(map))])
+def render_heightmap(karte):
+    z = np.array([[karte[y][x] for x in range(len(karte))] for y in range(len(karte))])
     x, y = np.meshgrid(range(z.shape[0]), range(z.shape[1]))
 
-    # show hight map in 3d
+    # show height map in 3d
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_surface(x, y, z)
@@ -200,14 +214,14 @@ if __name__ == '__main__':
 
     print('Der Berg wird platziert')
     for i in range(1):
-        Pos = (random.randrange(0, X), random.randrange(0, Y))
-        Radius = random.randrange(1000, 1100)
+        Pos = (2048, 2048)
+        Radius = 20480
         Karte = place_circle(Karte, Pos, 10, Radius)
         print(Pos, Radius)
 
     make_png(Karte, 'Test2.png')
 
-    for i in range(10):
+    for i in range(0):
         Karte = smooth_karte(Karte, 1, 400)
 
     make_png(Karte, 'Test3.png')
