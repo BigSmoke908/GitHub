@@ -148,14 +148,14 @@ def smooth(karte, h):
 
 
 def scale_map(karte):
-    alles = [karte[i][j] for i in range(len(karte)) for j in range(len(karte))]
+    alles = [karte[i][j] for i in range(len(karte)) for j in range(len(karte[i]))]
     maximum = max(alles)
 
     if maximum != 0:
         scale = 255 / maximum
 
         for q in range(len(karte)):
-            for r in range(len(karte)):
+            for r in range(len(karte[q])):
                 karte[q][r] = int(karte[q][r] * scale)
     return karte
 
@@ -174,7 +174,15 @@ def raise_and_scale(karte):
 
 def make_png(karte, file):
     karte = raise_and_scale(karte)
-    fertig = [(karte[a][b], karte[a][b], karte[a][b]) for a in range(len(karte)) for b in range(len(karte))]
+    fertig = [(karte[a][b], karte[a][b], karte[a][b]) for a in range(len(karte)) for b in range(len(karte[a]))]
+    img = Image.new('RGB', (len(karte), len(karte[0])))
+    img.putdata(fertig)
+    img.save(file)
+    print('Die Datei "' + file + '" wurde erstellt.')
+
+
+def make_col_png(karte, file):
+    fertig = [(karte[a][b]) for a in range(len(karte)) for b in range(len(karte))]
     img = Image.new('RGB', (len(karte), len(karte)))
     img.putdata(fertig)
     img.save(file)

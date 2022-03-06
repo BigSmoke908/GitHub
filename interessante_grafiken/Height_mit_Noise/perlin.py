@@ -8,32 +8,39 @@ from PIL import Image
 
 
 def make_island_png(karte, file):
-    farben = [[(30, 144, 255), -10], [(255, 255, 255), 10]]
-
+    karte = remake_map(karte)
     for i in range(len(karte)):
-        for j in range(len(karte)):
-            for k in range(len(farben)):
-                print(karte[i][j<])
-                if karte[i][j] < farben[k][1]:
-                    if k != 0:
-                        rgb = [0, 0, 0]
-                        for l in range(3):
-                            farbdiff = farben[k][0][l] - farben[k-1][0][l]
-                            heightdiff = farben[k][1] - farben[k-1][1]
-                            real_heightdiff = farben[k][1] - karte[i][j]
-                            scale = real_heightdiff / heightdiff
-                            scale *= farbdiff
-                            rgb[l] = farben[k][0][l] + scale
-                    else:
-                        karte[i][j] = farben[0][0]
-            karte[i][j] = (rgb[0], rgb[1], rgb[2])
-
+        for j in range(len(karte[i])):
+            karte[i][j] = get_color(karte[i][j])
     fertig = karte.copy()
-    alles = [fertig[i][j] for i in range(len(fertig)) for j in range(len(fertig))]
-    img = Image.new('RGB', (len(fertig), len(fertig)))
+    del karte
+    alles = [fertig[i][j] for i in range(len(fertig)) for j in range(len(fertig[i]))]
+    img = Image.new('RGB', (len(fertig), len(fertig[0])))
     img.putdata(alles)
     img.save(file)
     print('Die Datei "' + file + '" wurde erstellt.')
+
+
+def get_color(height):
+    farben = [[(0, 0, 0), -10.1], [(0, 100, 0), 0], [(0, 255, 0), 10.1]]
+    if type(height) == tuple:  # wurde bereits gemacht
+        return height
+    rgb = [0, 0, 0]
+    for k in range(len(farben)):
+        if farben[k][1] > height:
+            if k == 0:
+                return farben[k][0]
+            else:
+                for l in range(len(rgb)):
+                    delta_y = farben[k - 1][0][l] - farben[k][0][l]
+                    delta_x = farben[k - 1][1] - farben[k][1]
+                    x3 = height
+                    x1 = farben[k - 1][1]
+                    y1 = farben[k - 1][0][l]
+
+                    rgb[l] = int(((delta_y/delta_x) * (x3 - x1)) + y1)
+                return tuple(rgb)
+    return (random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
 
 
 def get_noise(y, size, scale, p):
@@ -46,7 +53,9 @@ def get_heightmap(size, scale, seed):
     perlin = Perlin_Lib.perlin(seed)
     p = Pool()
 
+    # TODO: nicht für jede Zeile einen Prozess erzeugen, sondern nur insgesamt 12
     y = range(size)
+    size -= 1
     func = partial(get_noise, size=size, scale=scale, p=perlin)
     result = p.map(func, iterable=y)
     p.close()
@@ -55,29 +64,39 @@ def get_heightmap(size, scale, seed):
 
 
 def show_karte(karte):
-    for i in range(len(karte)):
+    '''for i in range(len(karte)):
         print(karte[i])
+    print('------')'''
+    pass
 
 
 def remake_map(karte):
-    buffer = [karte[i][j] for i in range(len(karte)) for j in range(len(karte))]
+    buffer = [karte[i][j] for i in range(len(karte)) for j in range(len(karte[i]))]
 
     if max(buffer) != 0:
         scale = 20 / max(buffer)
-    else:
-        scale = 1
 
         for i in range(len(karte)):
             for j in range(len(karte)):
                 karte[i][j] *= scale
                 karte[i][j] -= 10
+    show_karte(karte)
     return karte
 
 
 if __name__ == '__main__':
-    Karte = get_heightmap(500, 1, random.randrange(0, 70))
-    render_heightmap(Karte)
-    Karte = remake_map(Karte)
-    make_island_png(Karte, 'Insel.png')
+    X = 10
+    Y = 10
+    Size = 20003
+    Seed = random.randrange(0, 70)
+    f = open('seed.txt', 'w')
+    f.write(str(Seed))
+    f.close()
+    Karte = get_heightmap(Size, 1, random.randrange(0, 70))
+    # Karte = [[(x + y)//200 for x in range(X)] for y in range(Y)]
+    # Karte = remake_map(Karte)
+    # render_heightmap(Karte)
+
     make_png(Karte, 'perlin_test.png')
+    make_island_png(Karte.copy(), 'Insel.png')
 
