@@ -10,7 +10,7 @@ scale = 1
 
 pygame.init()
 
-screen = pygame.display.set_mode((2560, 1440))
+screen = pygame.display.set_mode((1920, 1080))
 font = pygame.font.SysFont(None, 20 * scale)
 
 # kann zu einer Person später vielleicht auch noch ein Bild enthalten
@@ -68,7 +68,14 @@ def make_screenshot(file):
     print(file + ' saved')
 
 
-while True:
+def render_liste(feld):
+    for i in range(len(feld)):
+        for j in range(len(feld[i])):
+            pygame.draw.rect(screen, (feld[i][j]), (j, i, 1, 1))
+    pygame.display.update()
+
+
+while False:
     render_all()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -76,3 +83,9 @@ while True:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
             make_screenshot('test.png')
+
+Feld = [[get_farbe((i / 19.2)) for i in range(1920)] for j in range(1440)]
+render_liste(Feld)
+
+while True:
+    pass
