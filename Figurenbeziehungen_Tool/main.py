@@ -121,5 +121,7 @@ while False:
             make_screenshot('test.png')
 
 save_to_file()
+read_file('save_file.txt')
+
 # Feld = [[get_farbe((i / 19.2)) for i in range(1920)] for j in range(1440)]
 # render_liste(Feld)
