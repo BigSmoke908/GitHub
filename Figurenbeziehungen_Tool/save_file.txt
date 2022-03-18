@@ -1,0 +1,20 @@
+Personenbeginn
+Cooper ||
+Coopers Tochter ||
+Coopers Sohn ||
+Coopers Vater ||
+Personenende
+
+Beziehungenbeginn
+0|1|-19|-82|
+0|2|59|23|
+0|3|-50|-90|
+Beziehungenende
+
+Positionenbeginn
+184|458||
+421|736||
+610|841||
+1647|38||
+Positionenbeginn
+

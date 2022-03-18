@@ -62,6 +62,41 @@ def render_personen():
         pygame.draw.rect(screen, (0, 0, 0), (Positionen[person][0], Positionen[person][1], size[2], size[3]))
         screen.blit(name, Positionen[person])
 
+    # TODO: mögliche Bilder neben den Personen rendern
+
+
+def save_to_file():
+    f = open('save_file.txt', 'w')
+    f.write('Personenbeginn\n')
+    for i in Personen:
+        out = ''
+        for j in i:
+            out += str(j)
+        f.write(out + ' ||\n')
+    f.write('Personenende\n\n')
+
+    f.write('Beziehungenbeginn\n')
+    for i in Beziehungen:
+        out = ''
+        for j in i:
+            out += str(j)
+            out += '|'
+        f.write(out + '\n')
+    f.write('Beziehungenende\n\n')
+
+    f.write('Positionenbeginn\n')
+    for i in Positionen:
+        out = ''
+        for j in i:
+            out += str(j) + '|'
+        f.write(out + '|\n')
+    f.write('Positionenende\n\n')
+    f.close()
+
+
+def read_file(file):
+    # TODO: das irgendwie umsetzen
+
 
 def make_screenshot(file):
     pygame.image.save(screen, file)
@@ -73,6 +108,7 @@ def render_liste(feld):
         for j in range(len(feld[i])):
             pygame.draw.rect(screen, (feld[i][j]), (j, i, 1, 1))
     pygame.display.update()
+    print("liste rendern fertig")
 
 
 while False:
@@ -84,8 +120,6 @@ while False:
         elif event.type == pygame.KEYDOWN:
             make_screenshot('test.png')
 
-Feld = [[get_farbe((i / 19.2)) for i in range(1920)] for j in range(1440)]
-render_liste(Feld)
-
-while True:
-    pass
+save_to_file()
+# Feld = [[get_farbe((i / 19.2)) for i in range(1920)] for j in range(1440)]
+# render_liste(Feld)
