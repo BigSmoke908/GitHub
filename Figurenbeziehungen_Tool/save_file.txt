@@ -6,15 +6,15 @@ Coopers Vater ||
 Personenende
 
 Beziehungenbeginn
-0|1|-19|-82|
-0|2|59|23|
-0|3|-50|-90|
+0|1|-25|59|| 
+0|2|86|-53|| 
+0|3|94|39|| 
 Beziehungenende
 
 Positionenbeginn
-184|458||
-421|736||
-610|841||
-1647|38||
-Positionenbeginn
+637|335||
+984|982||
+331|377||
+1265|672||
+Positionenende
 

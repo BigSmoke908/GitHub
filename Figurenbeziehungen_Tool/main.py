@@ -5,16 +5,15 @@ import sys
 import time
 import pygame
 
-# kann erhöht werden, für das skalieren (siehe TO DO oben)
-scale = 1
+# kann erhöht werden, für das skalieren (siehe TO DO oben, maximum ist 8)
+scale = 8
 
 pygame.init()
 
-screen = pygame.display.set_mode((1920, 1080))
+screen = pygame.display.set_mode((1920 * scale, 1080 * scale))
 font = pygame.font.SysFont(None, 20 * scale)
 
-# kann zu einer Person später vielleicht auch noch ein Bild enthalten
-Personen = [['Cooper'], ['Coopers Tochter'], ['Coopers Sohn'], ['Coopers Vater']]
+Personen = ['Cooper', 'Coopers Tochter', 'Coopers Sohn', 'Coopers Vater']
 Namen = []
 # Beziehungen können von -255 bis 255 gehen (höher = bessere Beziehung, 0 = neutral)
 Beziehungen = [[0, i, random.randrange(-100, 101), random.randrange(-100, 101)] for i in range(1, 4)]
@@ -48,6 +47,10 @@ def render_strich(strich):
     for i in range(3):
         farbe[i] = (farbe1[i] + farbe2[i]) / 2
 
+    anfang = [anfang[0]*scale, anfang[1]*scale]
+    mitte = [mitte[0]*scale, mitte[1]*scale]
+    ende = [ende[0]*scale, ende[1]*scale]
+
     pygame.draw.line(screen, tuple(farbe1), anfang, mitte, 5 * scale)
     pygame.draw.line(screen, tuple(farbe2), ende, mitte, 5 * scale)
     pygame.draw.circle(screen, farbe, mitte, 7 * scale)
@@ -55,36 +58,33 @@ def render_strich(strich):
 
 def render_personen():
     for person in range(len(Personen)):
-        pygame.draw.circle(screen, (200, 200, 125), tuple(Positionen[person]), 10 * scale)
+        position = (Positionen[person][0]*scale, Positionen[person][1]*scale)
+        pygame.draw.circle(screen, (200, 200, 125), position, 10 * scale)
     for person in range(len(Personen)):
-        name = font.render(Personen[person][0], True, (200, 200, 125))
+        name = font.render(Personen[person], True, (200, 200, 125))
         size = list(name.get_rect())
-        pygame.draw.rect(screen, (0, 0, 0), (Positionen[person][0], Positionen[person][1], size[2], size[3]))
-        screen.blit(name, Positionen[person])
-
-    # TODO: mögliche Bilder neben den Personen rendern
+        pygame.draw.rect(screen, (0, 0, 0), (Positionen[person][0]*scale, Positionen[person][1]*scale, size[2], size[3]))
+        screen.blit(name, (Positionen[person][0]*scale, Positionen[person][1]*scale))
 
 
-def save_to_file():
-    f = open('save_file.txt', 'w')
+def save_to_file(file):
+    print('Daten wurden in ' + file + ' gespeichert.')
+    f = open(file, 'w')
     f.write('Personenbeginn\n')
     for i in Personen:
         out = ''
         for j in i:
             out += str(j)
         f.write(out + ' ||\n')
-    f.write('Personenende\n\n')
-
-    f.write('Beziehungenbeginn\n')
+    f.write('Personenende\n\nBeziehungenbeginn\n')
     for i in Beziehungen:
         out = ''
         for j in i:
             out += str(j)
             out += '|'
+        out += '| '
         f.write(out + '\n')
-    f.write('Beziehungenende\n\n')
-
-    f.write('Positionenbeginn\n')
+    f.write('Beziehungenende\n\nPositionenbeginn\n')
     for i in Positionen:
         out = ''
         for j in i:
@@ -95,7 +95,66 @@ def save_to_file():
 
 
 def read_file(file):
-    # TODO: das irgendwie umsetzen
+    global Personen, Beziehungen, Positionen
+    f = open(file, 'r')
+    gespeichert = f.read()
+    f.close()
+
+    # alles zurücksetzen
+    Personen = []
+    Beziehungen = []
+    Positionen = []
+
+    gespeichert = gespeichert.split()
+
+    # Personen auslesen--------------------------
+    while gespeichert[0] != 'Personenbeginn':  # Header Personen suchen
+        gespeichert.remove(gespeichert[0])
+    gespeichert.remove('Personenbeginn')
+    while gespeichert[0] != 'Personenende':
+        name = ''
+        while gespeichert[0] != '||':
+            name += gespeichert[0]
+            if gespeichert[1] != '||':
+                name += ' '
+            gespeichert.remove(gespeichert[0])
+        Personen.append(name)
+        gespeichert.remove(gespeichert[0])
+    gespeichert.remove(gespeichert[0])
+
+    # Beziehungen auslesen----------------------
+    while gespeichert[0] != 'Beziehungenbeginn':  # Header Beziehungen
+        gespeichert.remove(gespeichert[0])
+    gespeichert.remove(gespeichert[0])
+    while gespeichert[0] != 'Beziehungenende':
+        Beziehungen.append(gespeichert[0])
+        gespeichert.remove(gespeichert[0])
+    gespeichert.remove(gespeichert[0])
+
+    for i in range(len(Beziehungen)):
+        Beziehungen[i] = Beziehungen[i].split('|')
+        while '' in Beziehungen[i]:
+            Beziehungen[i].remove('')
+        for j in range(len(Beziehungen[i])):
+            Beziehungen[i][j] = int(Beziehungen[i][j])
+
+    # Positionen auslesen------------------------
+    while gespeichert[0] != 'Positionenbeginn':  # Header finden
+        gespeichert.remove(gespeichert[0])
+    gespeichert.remove(gespeichert[0])
+    while gespeichert[0] != 'Positionenende':
+        Positionen.append(gespeichert[0])
+        gespeichert.remove(gespeichert[0])
+    gespeichert.remove(gespeichert[0])
+    for i in range(len(Positionen)):
+        Positionen[i] = Positionen[i].split('|')
+        while '' in Positionen[i]:
+            Positionen[i].remove('')
+        for j in range(len(Positionen[i])):
+            Positionen[i][j] = int(Positionen[i][j])
+
+    screen.fill((0, 0, 0))
+    pygame.display.update()
 
 
 def make_screenshot(file):
@@ -103,6 +162,7 @@ def make_screenshot(file):
     print(file + ' saved')
 
 
+# für Testzwecke, kann die RGB-Werte einer 2D List rendern
 def render_liste(feld):
     for i in range(len(feld)):
         for j in range(len(feld[i])):
@@ -111,14 +171,19 @@ def render_liste(feld):
     print("liste rendern fertig")
 
 
-while False:
+while True:
     render_all()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            make_screenshot('test.png')
+            if event.key == pygame.K_s:
+                save_to_file('save_file.txt')
+            elif event.key == pygame.K_r:
+                read_file('save_file.txt')
+            else:
+                make_screenshot('test.png')
 
 save_to_file()
 read_file('save_file.txt')
