@@ -14,7 +14,7 @@ Kompletter Ablauf für das Erstellen einer Grafik
 7. fertig
 
 wichtig!!!
-nach dem Wrstellen von einem Bild, welches behalten werden soll, muss dieses sofort umbenannt/woanders gespeichert werden
+nach dem Erstellen von einem Bild, welches behalten werden soll, muss dieses sofort umbenannt/woanders gespeichert werden
 (sonst wird es wohlmöglich gleich danach überschrieben)
 """
 import random
@@ -30,8 +30,7 @@ screen = pygame.display.set_mode((1920 * scale, 1080 * scale))
 font = pygame.font.SysFont(None, 20 * scale)
 
 Personen = ['Cooper', 'Coopers Tochter', 'Coopers Sohn', 'Coopers Vater']
-Namen = []
-# Beziehungen können von -255 bis 255 gehen (höher = bessere Beziehung, 0 = neutral)
+# Beziehungen können von -100 bis 100 gehen (höher = bessere Beziehung, 0 = neutral)
 Beziehungen = [[0, i, random.randrange(-100, 101), random.randrange(-100, 101)] for i in range(1, 4)]
 Positionen = [[random.randrange(0, 1920), random.randrange(0, 1080)] for i in range(len(Personen))]  # erstmal zufällig
 
@@ -41,6 +40,8 @@ Ausgewaehlte_Person = None
 # Beginn von Rendern====================================================================================================
 def get_farbe(beziehung):
     # gibt eine gut aussehende Farbe basierend auf der Beziehung zurück
+    if beziehung == 'keine' or beziehung == 'k':
+        return [100, 100, 100]
     beziehung += 100
     beziehung /= 2
     return [-2.55 * beziehung + 255, 2.55 * beziehung, 50]
@@ -113,7 +114,6 @@ def save_to_file(file):
     f.close()
 
 
-# TODO: wenn nicht genügend Positionen vorhanden sind (man hat nicht immer Lust die alle von zu machen), dann sollen welche zufällig generiert werden.
 def read_file(file):
     global Personen, Beziehungen, Positionen
     f = open(file, 'r')
@@ -156,7 +156,8 @@ def read_file(file):
         while '' in Beziehungen[i]:
             Beziehungen[i].remove('')
         for j in range(len(Beziehungen[i])):
-            Beziehungen[i][j] = int(Beziehungen[i][j])
+            if Beziehungen[i][j] != 'keine' and Beziehungen[i][j] != 'k':
+                Beziehungen[i][j] = int(Beziehungen[i][j])
 
     # Positionen auslesen------------------------
     while gespeichert[0] != 'Positionenbeginn':  # Header finden
@@ -173,14 +174,25 @@ def read_file(file):
         for j in range(len(Positionen[i])):
             Positionen[i][j] = int(Positionen[i][j])
 
+    while len(Positionen) < len(Personen):
+        Positionen.append([random.randrange(0, 1920), random.randrange(0, 1080)])
     screen.fill((0, 0, 0))
     pygame.display.update()
 
 
 # Beginn von extras=====================================================================================================
 def make_screenshot(file):
+    global scale, font, screen
+    scale = 8
+    pygame.quit()
+    pygame.init()
+    screen = pygame.display.set_mode((1920*scale, 1080*scale))
+    font = pygame.font.SysFont(None, 20 * scale)
+    render_all(screen)
     pygame.image.save(screen, file)
     print(file + ' saved')
+    pygame.quit()
+    sys.exit()
 
 
 # für Testzwecke, kann die RGB-Werte einer 2D List rendern
@@ -200,6 +212,7 @@ def get_person(pos):
 
 
 # Beginn vom Mainloop===================================================================================================
+read_file('save_file.txt')
 while True:
     render_all(screen)
     for event in pygame.event.get():
@@ -211,7 +224,7 @@ while True:
                 save_to_file('save_file.txt')
             elif event.key == pygame.K_r:
                 read_file('save_file.txt')
-            else:
+            elif event.key == pygame.K_a:
                 make_screenshot('test.png')
         elif event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
@@ -228,3 +241,6 @@ while True:
         elif event.type == pygame.MOUSEMOTION and Ausgewaehlte_Person is not None:
             Positionen[Ausgewaehlte_Person] = pygame.mouse.get_pos()
             screen.fill((0, 0, 0))
+
+
+# TODO: eine Funktion, mit der man Personen/Beziehungen direkt über das Tool (ohne .txt Datei) hinzufügen kann
