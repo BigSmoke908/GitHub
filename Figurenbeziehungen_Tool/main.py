@@ -20,7 +20,6 @@ nach dem Erstellen von einem Bild, welches behalten werden soll, muss dieses sof
 import random
 import sys
 import time
-
 import pygame
 
 # muss erhöht werden, für das skalieren (siehe TO DO oben, maximum ist 8)
@@ -222,7 +221,7 @@ def add_beziehung(pers1, pers2, position):
                 try:
                     if neu[2] != 'keine' and neu[2] != 'k':
                         neu[2] = int(neu[2])
-                        status = False
+                    status = False
                 except:
                     neu[2] = ''
                     print_text('Fehler bei der Eingabe, versuche es erneut.', position)
@@ -238,13 +237,24 @@ def add_beziehung(pers1, pers2, position):
                 try:
                     if neu[3] != 'keine' and neu[3] != 'k':
                         neu[3] = int(neu[3])
-                        status = False
+                    status = False
                 except:
                     neu[3] = ''
                     print_text('Fehler bei der Eingabe, versuche es erneut.', position)
                     time.sleep(2)
             elif event.type == pygame.KEYDOWN:
                 neu[3] += event.unicode
+    if type(neu[2]) is int:
+        if neu[2] > 100:
+            neu[2] = 100
+        elif neu[2] < -100:
+            neu[2] = -100
+
+    if type(neu[3]) is int:
+        if neu[3] > 100:
+            neu[3] = 100
+        elif neu[3] < -100:
+            neu[3] = -100
     Beziehungen.append(neu)
     return
 
@@ -329,5 +339,4 @@ while True:
             Positionen[Ausgewaehlte_Person] = pygame.mouse.get_pos()
             screen.fill((0, 0, 0))
 
-
-# TODO: eine Funktion, mit der man Personen/Beziehungen direkt über das Tool (ohne .txt Datei) hinzufügen kann
+# TODO: vielleicht noch eine Legende unten Links anzeigen (erklären wie die Pfeile aufgebaut sind, etc.)
