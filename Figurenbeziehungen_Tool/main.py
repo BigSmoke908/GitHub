@@ -19,6 +19,8 @@ nach dem Erstellen von einem Bild, welches behalten werden soll, muss dieses sof
 """
 import random
 import sys
+import time
+
 import pygame
 
 # muss erhöht werden, für das skalieren (siehe TO DO oben, maximum ist 8)
@@ -180,6 +182,73 @@ def read_file(file):
     pygame.display.update()
 
 
+# Beginn von Person/Beziehung hinzufügen================================================================================
+def add_person(x, y):
+    global Personen, Positionen
+    print_text('Bitte gib den Namen der Person ein', (x, y))
+    status = True
+    name = ''
+
+    while status:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                state = pygame.mouse.get_pressed()
+                if state[0]:
+                    status = False
+            elif event.type == pygame.KEYDOWN:
+                name += event.unicode
+    screen.fill((0, 0, 0))
+    pygame.display.update()
+    render_all(screen)
+    if name not in Personen and name != '':
+        Personen.append(name)
+        Positionen.append([x, y])
+    else:
+        print_text('Bei diesem Name ist ein Fehler aufgetreten', (x, y))
+        time.sleep(3)
+    screen.fill((0, 0, 0))
+    pygame.display.update()
+    return
+
+
+def add_beziehung(pers1, pers2, position):
+    neu = [pers1, pers2, '', '']
+
+    print_text('Gib die Beziehung von ' + Personen[pers1] + ' zu ' + Personen[pers2] + ' ein.', position)
+    status = True
+    while status:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                try:
+                    if neu[2] != 'keine' and neu[2] != 'k':
+                        neu[2] = int(neu[2])
+                        status = False
+                except:
+                    neu[2] = ''
+                    print_text('Fehler bei der Eingabe, versuche es erneut.', position)
+                    time.sleep(2)
+            elif event.type == pygame.KEYDOWN:
+                neu[2] += event.unicode
+
+    print_text('Gib die Beziehung von ' + Personen[pers2] + ' zu ' + Personen[pers1] + ' ein.', position)
+    status = True
+    while status:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                try:
+                    if neu[3] != 'keine' and neu[3] != 'k':
+                        neu[3] = int(neu[3])
+                        status = False
+                except:
+                    neu[3] = ''
+                    print_text('Fehler bei der Eingabe, versuche es erneut.', position)
+                    time.sleep(2)
+            elif event.type == pygame.KEYDOWN:
+                neu[3] += event.unicode
+    Beziehungen.append(neu)
+    return
+
+
 # Beginn von extras=====================================================================================================
 def make_screenshot(file):
     global scale, font, screen
@@ -193,6 +262,14 @@ def make_screenshot(file):
     print(file + ' saved')
     pygame.quit()
     sys.exit()
+
+
+def print_text(text, pos):
+    text = font.render(text, True, (100, 100, 100))
+    screen.fill((0, 0, 0))
+    render_all(screen)
+    screen.blit(text, pos)
+    pygame.display.update()
 
 
 # für Testzwecke, kann die RGB-Werte einer 2D List rendern
@@ -213,6 +290,7 @@ def get_person(pos):
 
 # Beginn vom Mainloop===================================================================================================
 read_file('save_file.txt')
+PersonenFuerBeziehung = []
 while True:
     render_all(screen)
     for event in pygame.event.get():
@@ -231,13 +309,22 @@ while True:
             pos = [x, y]
             state = pygame.mouse.get_pressed()
 
-            if Ausgewaehlte_Person == None:
-                Ausgewaehlte_Person = get_person(pos)
-            elif Ausgewaehlte_Person != None:
-                Positionen[Ausgewaehlte_Person] = pos
-                Ausgewaehlte_Person = None
-                screen.fill((0, 0, 0))
-                pygame.display.update()
+            if state[1]:
+                add_person(pos[0], pos[1])
+            elif state[2] and get_person(pos) is not None:
+                if len(PersonenFuerBeziehung) != 2:
+                    PersonenFuerBeziehung.append(get_person(pos))
+                if len(PersonenFuerBeziehung) == 2:
+                    add_beziehung(PersonenFuerBeziehung[0], PersonenFuerBeziehung[1], pos)
+                    PersonenFuerBeziehung = []
+            else:
+                if Ausgewaehlte_Person == None:
+                    Ausgewaehlte_Person = get_person(pos)
+                elif Ausgewaehlte_Person != None:
+                    Positionen[Ausgewaehlte_Person] = pos
+                    Ausgewaehlte_Person = None
+                    screen.fill((0, 0, 0))
+                    pygame.display.update()
         elif event.type == pygame.MOUSEMOTION and Ausgewaehlte_Person is not None:
             Positionen[Ausgewaehlte_Person] = pygame.mouse.get_pos()
             screen.fill((0, 0, 0))
