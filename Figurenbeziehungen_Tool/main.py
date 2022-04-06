@@ -7,11 +7,11 @@ rechtsklick danach = vorher ausgewählt person wird an diese position gesetzt
 Kompletter Ablauf für das Erstellen einer Grafik
 1. scale auf 1 setzen
 2. die personen mit ihren beziehungen alle so anordnen, bis es einem gefällt
+2. die Personen so erstellen wie man will (Mausrad reindrücken)
+2. die Beziehungen so einstellen wie man will (Rechtsklick auf beide Personen)
 3. speichern
-4. das programm schließen
-5. scale auf 8 setzten
-6. programm starten und einen screenshot erstellen
-7. fertig
+4. Screenshot machen (a drücken)
+5. für mögliche Änderungen das Programm neustarten
 
 wichtig!!!
 nach dem Erstellen von einem Bild, welches behalten werden soll, muss dieses sofort umbenannt/woanders gespeichert werden
