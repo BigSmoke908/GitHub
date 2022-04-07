@@ -53,6 +53,7 @@ def render_all(surface):
         render_strich(i, surface)
     render_personen(surface)
     pygame.display.update()
+    render_legende()
 
 
 def render_strich(strich, surface):
@@ -85,6 +86,14 @@ def render_personen(surface):
         size = list(name.get_rect())
         pygame.draw.rect(surface, (0, 0, 0), (Positionen[person][0]*scale, Positionen[person][1]*scale, size[2], size[3]))
         surface.blit(name, (Positionen[person][0]*scale, Positionen[person][1]*scale))
+
+
+def render_legende():
+    pygame.draw.rect(screen, (50, 50, 50), (0, (1080 - 100) * scale, 300 * scale, 100 * scale))
+
+    print_only_text('Legende', [120 * scale, (1080 - 95) * scale])
+
+    # TODO: die Legende vervollständigen!
 
 
 # Beginn von Speicher/Lesen=============================================================================================
@@ -279,7 +288,11 @@ def print_text(text, pos):
     screen.fill((0, 0, 0))
     render_all(screen)
     screen.blit(text, pos)
-    pygame.display.update()
+
+
+def print_only_text(text, pos):
+    text = font.render(text, True, (100, 100, 100))
+    screen.blit(text, pos)
 
 
 # für Testzwecke, kann die RGB-Werte einer 2D List rendern
@@ -338,5 +351,3 @@ while True:
         elif event.type == pygame.MOUSEMOTION and Ausgewaehlte_Person is not None:
             Positionen[Ausgewaehlte_Person] = pygame.mouse.get_pos()
             screen.fill((0, 0, 0))
-
-# TODO: vielleicht noch eine Legende unten Links anzeigen (erklären wie die Pfeile aufgebaut sind, etc.)
