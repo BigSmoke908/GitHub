@@ -71,18 +71,38 @@ def simulate_game(wuerfe):
     return richtige
 
 
-def draw_graph(verlauf1, verlauf2, player):
+def draw_graph(verlauf1, verlauf2, verlauf3, verlauf4, player):
     plt.plot([i for i in range(len(verlauf1))], verlauf1, label='Fair')
     plt.plot([i for i in range(len(verlauf2))], verlauf2, label='Gecheated')
+    plt.plot([i for i in range(len(verlauf3))], verlauf3, label='Heads')
+    plt.plot([i for i in range(len(verlauf4))], verlauf4, label='Tails')
 
     plt.xlabel('Münzwürfe')
     plt.ylabel('Wahrscheinlichkeit')
     if player == 0:
         plt.title('Fair gespielt')
-    else:
+    elif player == 1:
         plt.title('Unfair gespielt')
+    else:
+        plt.title('Keine Angabe zur Fairness')
 
     plt.show()
+
+
+# berechnet eine Score, für wie stark die Gewinnwahrscheinlichkeit bei einer bestimmten Vermutung demnächst steigt
+# (Score setzt sich aus dem möglichem Gewinn und der Wahrscheinlichkeit dafür zusammen)
+# Die Funktion wird Rekursiv eingesetzt (bis die noch vorhandene Tiefe == 0, ist aber noch nicht implementiert)
+def get_score(coins, vermutung, vorhandene_tiefe):
+    n = sum(coins)
+
+    möglicher_gewinn = 15 + n
+    möglicher_verlust = (30 + n) * -1
+
+    if vermutung == 0:
+        p = get_wahrscheinlichkeit_fair(coins)
+    else:
+        p = get_wahrscheinlichkeit_cheater(coins)
+    return (p * möglicher_gewinn) + ((1 - p) * möglicher_verlust)
 
 
 def full_sim(strat):
@@ -121,24 +141,36 @@ def full_sim(strat):
             print(wuerfe)
     return gewonnen
 
-"""
-Ertrag = []
-for Wuerf in range(1, 10):
-    Richtigkeit = []
-    Wuerfe = 4
-    for alle in range(500):
-        Richtigkeit.append(simulate_game(Wuerfe))
 
-    quote = durchschnitt(Richtigkeit)
-    gewinn = (quote * (15 - Wuerfe)) + ((100 - quote) * -(30 + Wuerfe))
-    Ertrag.append([Wuerfe, gewinn])
-    print(Wuerfe)
-"""
+def beide(ereignis):
+    print(get_wahrscheinlichkeit_fair(ereignis))
+    print(get_wahrscheinlichkeit_cheater(ereignis))
 
+
+'''
 Gewinne = []
-
 for i in range(5000):
     Gewinne.append(full_sim(3))
 
 print(max(Gewinne))
 print(durchschnitt(Gewinne))
+'''
+
+Test_Coins = [0, 0]
+Coin_speicher = []
+Faireplay = []
+Cheaten = []
+for Test in range(1, 100):
+    Wurf = random.randrange(0, 4)
+    if Wurf == 3:
+        Test_Coins[1] += 1
+    else:
+        Test_Coins[0] += 1
+    Faireplay.append(get_score(Test_Coins, 0, None))
+    Cheaten.append(get_score(Test_Coins, 1, None))
+    Coin_speicher.append(Test_Coins.copy())
+
+Heads = [Coin_speicher[i][0] for i in range(len(Coin_speicher))]
+Tails = [Coin_speicher[i][1] for i in range(len(Coin_speicher))]
+
+draw_graph(Faireplay, Cheaten, Heads, Tails, None)
