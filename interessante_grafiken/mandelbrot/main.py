@@ -1,3 +1,4 @@
+import time
 import pygame
 import sys
 from PIL import Image
@@ -22,18 +23,36 @@ def mandelbrot(re, im, max_iter):
     return abs(int(50 * z.real)), abs(int(50 * z.real)), abs(int(50 * z.real)), abs(int(50 * z.real))
 
 
-# guckt ob ein bestimmter Wert Teil von dem Mandelbrotset ist -> wenn nein -> gibt den Pfad zurück (für Buddhabrot)
+# guckt, ob ein bestimmter Wert Teil von dem Mandelbrotset ist -> wenn nein -> gibt den Pfad zurück (für Buddhabrot)
 def test_mandelbrot(re, im, max_iterations):
     c = complex(re, im)
+    buffer_c = c
     z = 0.0j
-
-    pfad = []
+    teil_von_buddhabrot = False
 
     for iterationen in range(max_iterations):
+        try:
+            z = z ** 2 + c
+            if z.real ** 2 + z.imag ** 2 >= 4:
+                teil_von_buddhabrot = True
+        except:
+            teil_von_buddhabrot = True
+
+    if not teil_von_buddhabrot:
+        return []
+
+    c = buffer_c
+    z = 0.0j
+    pfad = []
+    for iterationen in range(max_iterations):
         z = z ** 2 + c
-        pfad.append([z.real, z.imag, z])
-        if z.real ** 2 + z.imag ** 2 >= 4:
+        pfad.append([z.real, z.imag])
+        try:
+            if z.real ** 2 + z.imag ** 2 >= 4:
+                return pfad
+        except:
             return pfad
+    print('An Error has occurred (part [' + str(re) + ', ' + str(im) + '] was classified incorrect)!')
     return []
 
 
@@ -42,17 +61,14 @@ def buddhabrot_single_thread(abschnitt1, max_iterations, file='b_set.png', make_
 
     for i in range(abschnitt1[0], abschnitt1[1]):
         for j in range(abschnitt2[0], abschnitt2[1]):
-            abschnitt = test_mandelbrot((i/540)-2.4, (j/540)-3.5, max_iterations)
+            abschnitt = test_mandelbrot((i/650)-2.4, (j/650)-3, max_iterations)
 
             if len(abschnitt) != 0:
                 for punkt in abschnitt:
                     try:
-                        b_set[int((punkt[0]+2.4)*540)][int((punkt[1]+3.5)*540)] += 1
+                        b_set[int((punkt[0]+2.4)*650)][int((punkt[1]+3)*650)] += 1
                     except:
                         pass
-        if i % 100 == 0:
-            print('a')
-
     if make_file:
         scale = 255/maxima(b_set)
         bild = []
@@ -72,8 +88,20 @@ def buddhabrot_single_thread(abschnitt1, max_iterations, file='b_set.png', make_
     return b_set
 
 
-def verteile_aufgaben(bereich, anzahl=11):
-    return [[i, i + (bereich[1] - bereich[0])//anzahl, i//((bereich[1] - bereich[0])//anzahl)] for i in range(bereich[0], bereich[1], (bereich[1] - bereich[0])//anzahl)]
+def verteile_aufgaben(bereich, anzahl=11, index=True):
+    if index:
+        return [[i, i + (bereich[1] - bereich[0])//anzahl, i//((bereich[1] - bereich[0])//anzahl)] for i in range(bereich[0], bereich[1], (bereich[1] - bereich[0])//anzahl)]
+    return [[i, i + (bereich[1] - bereich[0])//anzahl] for i in range(bereich[0], bereich[1], (bereich[1] - bereich[0])//anzahl)]
+
+
+# teilt alle Elemente einer 2D-List durch einen angegebenen Faktor + gibt nur Integer zurück
+def list_runden(eingabe, faktor):
+    return [[i//faktor if i/faktor % 1 < 0.5 else i//faktor + 1 for i in j] for j in eingabe].copy()
+
+
+# fügt zwei 2d Lists zusammen
+def add(list1, list2):
+    return [[list1[i][j] + list2[i][j] for j in range(len(list1[i]))] for i in range(len(list1))].copy()
 
 
 def buddhabrot_multi_threads(max_iterations, file='b_set.png'):
@@ -81,7 +109,7 @@ def buddhabrot_multi_threads(max_iterations, file='b_set.png'):
     alle_sets = [[0 for x in range(3840)] for y in range(2160)]
 
     function = partial(buddhabrot_single_thread, max_iterations=max_iterations, make_file=False)
-    results = p.map(function, iterable=verteile_aufgaben([0, 2160], 12))
+    results = p.map(function, iterable=verteile_aufgaben([0, 2160], 40, index=False))
 
     for zeile in range(len(alle_sets)):
         for reihe in range(len(alle_sets[zeile])):
@@ -137,4 +165,6 @@ if normal_Mandelbrot:
 
 
 if __name__ == '__main__':
+    begin = time.time()
     buddhabrot_multi_threads(10000)
+    print(time.time() - begin)

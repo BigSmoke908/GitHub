@@ -33,8 +33,7 @@ font = pygame.font.SysFont(None, 20 * scale)
 Personen = ['Cooper', 'Coopers Tochter', 'Coopers Sohn', 'Coopers Vater']
 # Beziehungen können von -100 bis 100 gehen (höher = bessere Beziehung, 0 = neutral)
 Beziehungen = [[0, i, random.randrange(-100, 101), random.randrange(-100, 101)] for i in range(1, 4)]
-Positionen = [[random.randrange(0, 1920), random.randrange(0, 1080)] for i in range(len(Personen))]  # erstmal zufällig
-
+Positionen = [[random.randrange(0, 1920), random.randrange(0, 1080)] for i in range(len(Personen))]
 Ausgewaehlte_Person = None
 
 
@@ -54,6 +53,7 @@ def render_all(surface):
     render_personen(surface)
     pygame.display.update()
     render_legende()
+    pygame.display.update()
 
 
 def render_strich(strich, surface):
@@ -89,11 +89,13 @@ def render_personen(surface):
 
 
 def render_legende():
-    pygame.draw.rect(screen, (50, 50, 50), (0, (1080 - 100) * scale, 300 * scale, 100 * scale))
+    # pygame.draw.rect(screen, (50, 50, 50), (0, (1080 - 100) * scale, 300 * scale, 100 * scale))
 
-    print_only_text('Legende', [120 * scale, (1080 - 95) * scale])
+    # print_only_text('Legende', [120 * scale, (1080 - 95) * scale])
 
     # TODO: die Legende vervollständigen!
+
+    pass
 
 
 # Beginn von Speicher/Lesen=============================================================================================
@@ -190,7 +192,7 @@ def read_file(file):
     pygame.display.update()
 
 
-# Beginn von Person/Beziehung hinzufügen================================================================================
+# Beginn von Person/Beziehung hinzufügen/entfernen======================================================================
 def add_person(x, y):
     global Personen, Positionen
     print_text('Bitte gib den Namen der Person ein', (x, y))
@@ -217,6 +219,23 @@ def add_person(x, y):
     screen.fill((0, 0, 0))
     pygame.display.update()
     return
+
+
+def remove_person(person):
+    global Personen, Beziehungen, Positionen
+    Personen.remove(Personen[person])
+    Positionen.pop(person)
+
+    for i in range(len(Beziehungen)):  # Beziehungen entfernen
+        if i in range(len(Beziehungen)):
+            if person == Beziehungen[i][0] or person == Beziehungen[i][1]:
+                Beziehungen.remove(Beziehungen[i])
+    for i in range(len(Beziehungen)):  # oder andere Beziehungen angepasst werden (JA; DASS MUSS IN EINEM EXTRA LOOP SEIN!!!!!!!!!)
+        if Beziehungen[i][0] > person:
+            Beziehungen[i][0] -= 1
+        if Beziehungen[i][1] > person:
+            Beziehungen[i][1] -= 1
+    screen.fill((0, 0, 0))
 
 
 def add_beziehung(pers1, pers2, position):
@@ -288,6 +307,7 @@ def print_text(text, pos):
     screen.fill((0, 0, 0))
     render_all(screen)
     screen.blit(text, pos)
+    pygame.display.update()
 
 
 def print_only_text(text, pos):
@@ -319,14 +339,23 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            print(Positionen)
+            print(Personen)
+            print(Beziehungen)
             sys.exit()
         elif event.type == pygame.KEYDOWN:
+            x, y = pygame.mouse.get_pos()  # falls eine Person entfernt werden soll
+            pos = [x, y]
+
             if event.key == pygame.K_s:
                 save_to_file('save_file.txt')
             elif event.key == pygame.K_r:
                 read_file('save_file.txt')
             elif event.key == pygame.K_a:
                 make_screenshot('test.png')
+            elif event.key == pygame.K_e and get_person(pos) is not None:
+                print('Person ' + Personen[get_person(pos)] + ' wird entfernt!')
+                remove_person(get_person(pos))
         elif event.type == pygame.MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
             pos = [x, y]
@@ -341,9 +370,9 @@ while True:
                     add_beziehung(PersonenFuerBeziehung[0], PersonenFuerBeziehung[1], pos)
                     PersonenFuerBeziehung = []
             else:
-                if Ausgewaehlte_Person == None:
+                if Ausgewaehlte_Person is None:
                     Ausgewaehlte_Person = get_person(pos)
-                elif Ausgewaehlte_Person != None:
+                else:
                     Positionen[Ausgewaehlte_Person] = pos
                     Ausgewaehlte_Person = None
                     screen.fill((0, 0, 0))
