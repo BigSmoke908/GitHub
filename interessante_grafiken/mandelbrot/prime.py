@@ -76,7 +76,7 @@ def get_cords(x, zoom=1):
     return [x * math.cos(x) * zoom, x * math.sin(x) * zoom]
 
 
-if __name__ == '__main__':
+if __name__ != '__main__':
     pygame.init()
     screen = pygame.display.set_mode((3840, 2160))
     Primzahlen = []

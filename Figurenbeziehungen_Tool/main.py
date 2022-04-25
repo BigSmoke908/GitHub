@@ -1,6 +1,7 @@
 """
 r = die daten aus der datei save_file.txt einlesen
 s = die daten in die datei save_file.txt schreiben
+e + Maus auf Person richten = diese Person mit allen bestehenden Beziehungen entfernen
 linksklick auf eine person = diese person wird ausgewählt
 rechtsklick danach = vorher ausgewählt person wird an diese position gesetzt
 
@@ -100,7 +101,7 @@ def render_legende():
 
 # Beginn von Speicher/Lesen=============================================================================================
 def save_to_file(file):
-    print('Daten wurden in ' + file + ' gespeichert.')
+    print('Änderungen wurden in ' + file + ' gespeichert.')
     f = open(file, 'w')
     f.write('Personenbeginn\n')
     for i in Personen:
@@ -223,19 +224,21 @@ def add_person(x, y):
 
 def remove_person(person):
     global Personen, Beziehungen, Positionen
-    Personen.remove(Personen[person])
     Positionen.pop(person)
 
+    beziehungen_neu = []
     for i in range(len(Beziehungen)):  # Beziehungen entfernen
         if i in range(len(Beziehungen)):
-            if person == Beziehungen[i][0] or person == Beziehungen[i][1]:
-                Beziehungen.remove(Beziehungen[i])
-    for i in range(len(Beziehungen)):  # oder andere Beziehungen angepasst werden (JA; DASS MUSS IN EINEM EXTRA LOOP SEIN!!!!!!!!!)
-        if Beziehungen[i][0] > person:
-            Beziehungen[i][0] -= 1
-        if Beziehungen[i][1] > person:
-            Beziehungen[i][1] -= 1
+            if person != Beziehungen[i][0] and person != Beziehungen[i][1]:
+                if Beziehungen[i][0] > person:
+                    Beziehungen[i][0] -= 1
+                if Beziehungen[i][1] > person:
+                    Beziehungen[i][1] -= 1
+                beziehungen_neu.append(Beziehungen[i])
+    Beziehungen = beziehungen_neu.copy()
+
     screen.fill((0, 0, 0))
+    Personen.remove(Personen[person])
 
 
 def add_beziehung(pers1, pers2, position):
@@ -339,9 +342,6 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            print(Positionen)
-            print(Personen)
-            print(Beziehungen)
             sys.exit()
         elif event.type == pygame.KEYDOWN:
             x, y = pygame.mouse.get_pos()  # falls eine Person entfernt werden soll
@@ -380,3 +380,6 @@ while True:
         elif event.type == pygame.MOUSEMOTION and Ausgewaehlte_Person is not None:
             Positionen[Ausgewaehlte_Person] = pygame.mouse.get_pos()
             screen.fill((0, 0, 0))
+
+
+# TODO: die Farbe von der Beziehung ändert sich, wie man den Abstand hinzieht -> mann kann auch den Mittelpunkt verschieben und soe die Farben einzeln direkt steuern

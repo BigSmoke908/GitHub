@@ -1,9 +1,17 @@
 Personenbeginn
+Cooper ||
+Murph ||
+Dr. Brand Jr. ||
 Personenende
 
 Beziehungenbeginn
+0|1|100|80|| 
+0|2|90|90|| 
 Beziehungenende
 
 Positionenbeginn
+767|432||
+670|403||
+754|347||
 Positionenende
 
