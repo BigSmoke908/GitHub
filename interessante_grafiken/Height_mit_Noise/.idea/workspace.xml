@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b4fd9f71-b655-4546-9474-48dbcdaf7d23" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../mandelbrot/extra.py" beforeDir="false" afterPath="$PROJECT_DIR$/../mandelbrot/extra.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mandelbrot/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../mandelbrot/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="b4fd9f71-b655-4546-9474-48dbcdaf7d23" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -25,7 +22,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../mandelbrot" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../Programmieraufgabe_Monat/ab_Mai" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
