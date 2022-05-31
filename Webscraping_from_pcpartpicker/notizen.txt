@@ -1,0 +1,4 @@
+die Daten gehen in etwa von 'chart_data' bis 'init_price_history_chart'
+
+die Preise von Amazon sind nicht auf PC-Partpicker vorhanden!!!!
+
