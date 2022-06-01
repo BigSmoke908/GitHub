@@ -53,7 +53,15 @@ def get_all_products(filter_id):
     response = urllib.request.urlopen(url)
     site = response.read().decode('UTF-8')
 
+    # site = site.split('"paginated_table"')
+    # site = site[1]
+
     print(site)
+
+    # site = site.split('page_button_row_bot')
+    # site = site[0]
+
+    # print(site)
 
 
 get_all_products(494)
