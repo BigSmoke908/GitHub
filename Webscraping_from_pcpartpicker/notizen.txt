@@ -2,3 +2,5 @@ die Daten gehen in etwa von 'chart_data' bis 'init_price_history_chart'
 
 die Preise von Amazon sind nicht auf PC-Partpicker vorhanden!!!!
 
+in dem HTML Code von der Website stehen auch die ganzen IDs für den Filter, zusammen mit den Namen der
+GPU -> kann benutzt werden um die IDs zu generieren
