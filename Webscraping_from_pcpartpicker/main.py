@@ -1,6 +1,7 @@
 import urllib.request
 import urllib.error
 import urllib.parse
+import time
 
 
 # soll hinterher die Preis-Historien für ein beliebiges Produkt von PC-Partpicker zurückgegeben
