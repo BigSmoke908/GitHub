@@ -46,5 +46,4 @@ def Rickroll():
     keyboard.release(Key.space)
 
 
-
-#Rickroll()
+Rickroll()
