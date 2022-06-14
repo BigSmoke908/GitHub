@@ -21,11 +21,12 @@ def recombine(framepath, framecounter, videoname, fps, filetype='.jpg'):
     # Tutorial bei: https://www.youtube.com/watch?v=X4Jw8egqGzI
     clip = []
 
-    for counter in range(framecounter):
+    for counter in range(1, framecounter):
         clip.append(ImageClip(framepath + str(counter) + filetype).set_duration(1/fps))
     video = concatenate_videoclips(clip, method='compose')
     video.write_videofile(str(videoname) + '.mp4', fps=fps, codec='libx264')
+    video.close()
 
 
-split_video('videotest/', 'hyperlapse.mov', 'split/')
-recombine('videotest/split/', 229, 'videotest/recombined', 30)
+split_video('videotest/', 'recombined.mp4', 'neu/')
+# recombine('videotest/split/', 16, 'videotest/recombined', 1)
